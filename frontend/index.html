@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>淘票票 - 演出票务平台</title>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link">我的订单</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-section">
+                    <div class="filter-label">分类</div>
+                    <div class="filter-options">
+                        <span class="filter-option active">全部</span>
+                        <span class="filter-option">演唱会</span>
+                        <span class="filter-option">话剧歌剧</span>
+                        <span class="filter-option">展览休闲</span>
+                        <span class="filter-option">体育</span>
+                        <span class="filter-option">音乐会</span>
+                        <span class="filter-option">儿童亲子</span>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">时间</div>
+                    <div class="filter-options">
+                        <span class="filter-option active">全部</span>
+                        <span class="filter-option">今天</span>
+                        <span class="filter-option">明天</span>
+                        <span class="filter-option">本周末</span>
+                        <span class="filter-option">本月</span>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">排序</div>
+                    <div class="filter-options">
+                        <span class="filter-option active">热度优先</span>
+                        <span class="filter-option">最新上架</span>
+                        <span class="filter-option">即将开始</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 演出列表 -->
+            <div class="event-grid">
+                <!-- 演出卡片 1 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">周杰伦2025嘉年华世界巡回演唱会-上海站</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.03.15 - 03.16
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海体育场
+                        </div>
+                        <div class="event-price">
+                            ¥380 - ¥2580
+                            <span class="event-status">
+                                <span class="badge badge-success">热卖中</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 2 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">林俊杰JJ20世界巡回演唱会-上海站</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.04.12 - 04.13
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>梅赛德斯-奔驰文化中心
+                        </div>
+                        <div class="event-price">
+                            ¥480 - ¥1880
+                            <span class="event-status">
+                                <span class="badge badge-warning">即将开售</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 3 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">经典音乐剧《剧院魅影》中文版</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.03.01 - 05.31
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海文化广场
+                        </div>
+                        <div class="event-price">
+                            ¥180 - ¥1280
+                            <span class="event-status">
+                                <span class="badge badge-success">热卖中</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 4 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">NBA季前赛：湖人vs勇士</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.03.08
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>梅赛德斯-奔驰文化中心
+                        </div>
+                        <div class="event-price">
+                            ¥680 - ¥4880
+                            <span class="event-status">
+                                <span class="badge badge-danger">已售罄</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 5 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">沉浸式艺术展《梵高星空》</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.02.14 - 06.30
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海展览中心
+                        </div>
+                        <div class="event-price">
+                            ¥98 - ¥268
+                            <span class="event-status">
+                                <span class="badge badge-success">热卖中</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 6 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">话剧《白鹿原》</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.03.20 - 03.22
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海大剧院
+                        </div>
+                        <div class="event-price">
+                            ¥180 - ¥880
+                            <span class="event-status">
+                                <span class="badge badge-success">热卖中</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 7 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">2025上海草莓音乐节</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.05.01 - 05.03
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海东方绿舟
+                        </div>
+                        <div class="event-price">
+                            ¥360 - ¥1280
+                            <span class="event-status">
+                                <span class="badge badge-warning">即将开售</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演出卡片 8 -->
+                <div class="event-card" onclick="location.href='event-detail.html'">
+                    <div class="event-cover" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);"></div>
+                    <div class="event-info">
+                        <div class="event-title">儿童剧《小猪佩奇》</div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📅</span>2025.03.09 - 03.10
+                        </div>
+                        <div class="event-meta">
+                            <span class="event-meta-icon">📍</span>上海儿童艺术剧场
+                        </div>
+                        <div class="event-price">
+                            ¥120 - ¥480
+                            <span class="event-status">
+                                <span class="badge badge-success">热卖中</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-section-title">关于我们</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">公司简介</a></li>
+                        <li class="footer-link"><a href="#">联系方式</a></li>
+                        <li class="footer-link"><a href="#">加入我们</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">帮助中心</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="help-center.html">购票须知</a></li>
+                        <li class="footer-link"><a href="help-center.html">常见问题</a></li>
+                        <li class="footer-link"><a href="help-center.html">退换票政策</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">合作伙伴</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">场馆合作</a></li>
+                        <li class="footer-link"><a href="#">票务代理</a></li>
+                        <li class="footer-link"><a href="#">广告合作</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <div class="footer-section-title">关注我们</div>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">官方微信</a></li>
+                        <li class="footer-link"><a href="#">新浪微博</a></li>
+                        <li class="footer-link"><a href="#">抖音号</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>占用记录 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-seats.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">💺</span>
+                    <span>座位管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+                <a href="admin-reservations.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">⏰</span>
+                    <span>占用记录</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="admin-login.html" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">占用记录</div>
+                <div class="admin-header-actions">
+                    <button class="btn btn-danger btn-small">批量释放</button>
+                    <button class="btn btn-secondary btn-small">导出记录</button>
+                    <span class="badge badge-warning">12 条即将过期</span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 筛选区 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="搜索订单号、演出名称...">
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部状态</option>
+                        <option>已支付</option>
+                        <option>已取消</option>
+                        <option>已过期</option>
+                        <option>占用中</option>
+                    </select>
+                    <input type="date" class="form-select" style="width: 160px;" value="2025-01-01">
+                    <span style="padding: 10px;">至</span>
+                    <input type="date" class="form-select" style="width: 160px;" value="2025-01-26">
+                    <button class="btn btn-secondary">筛选</button>
+                    <button class="btn btn-outline btn-small">重置</button>
+                </div>
+
+                <!-- 占用记录列表 -->
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>演出名称</th>
+                                <th>场次</th>
+                                <th>座位信息</th>
+                                <th>占用时间</th>
+                                <th>到期时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501252129001</div>
+                                    <div class="text-small text-muted">用户138****1234</div>
+                                </td>
+                                <td>周杰伦演唱会</td>
+                                <td>2025-03-15 19:30</td>
+                                <td>
+                                    <div>VIP内场 2排5号</div>
+                                    <div class="text-small text-muted">¥2280 × 1</div>
+                                </td>
+                                <td>2025-01-25 21:29:32</td>
+                                <td style="color: #d32f2f; font-weight: 600;">2025-01-25 21:44:32</td>
+                                <td><span class="badge badge-danger">即将过期</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-delete">释放</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501252100023</div>
+                                    <div class="text-small text-muted">用户159****5678</div>
+                                </td>
+                                <td>林俊杰演唱会</td>
+                                <td>2025-03-20 19:30</td>
+                                <td>
+                                    <div>看台一等 5排8号</div>
+                                    <div class="text-small text-muted">¥1280 × 2</div>
+                                </td>
+                                <td>2025-01-25 21:00:15</td>
+                                <td style="color: #d32f2f; font-weight: 600;">2025-01-25 21:15:15</td>
+                                <td><span class="badge badge-danger">即将过期</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-delete">释放</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501252030045</div>
+                                    <div class="text-small text-muted">用户186****9012</div>
+                                </td>
+                                <td>张惠妹演唱会</td>
+                                <td>2025-04-01 19:30</td>
+                                <td>
+                                    <div>VIP内场 1排1号</div>
+                                    <div class="text-small text-muted">¥2280 × 1</div>
+                                </td>
+                                <td>2025-01-25 20:30:00</td>
+                                <td>2025-01-25 20:45:00</td>
+                                <td><span class="badge badge-warning">已过期</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">恢复</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501252000067</div>
+                                    <div class="text-small text-muted">用户135****3456</div>
+                                </td>
+                                <td>邓紫棋演唱会</td>
+                                <td>2025-02-28 19:30</td>
+                                <td>
+                                    <div>看台二等 8排12号</div>
+                                    <div class="text-small text-muted">¥880 × 1</div>
+                                </td>
+                                <td>2025-01-25 20:00:00</td>
+                                <td>2025-01-25 20:15:00</td>
+                                <td><span class="badge badge-warning">已过期</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">恢复</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251930001</div>
+                                    <div class="text-small text-muted">用户138****7890</div>
+                                </td>
+                                <td>周杰伦演唱会</td>
+                                <td>2025-03-15 19:30</td>
+                                <td>
+                                    <div>VIP内场 3排7号</div>
+                                    <div class="text-small text-muted">¥1880 × 1</div>
+                                </td>
+                                <td>2025-01-25 19:30:00</td>
+                                <td>2025-01-25 19:45:00</td>
+                                <td><span class="badge badge-success">已支付</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251920089</div>
+                                    <div class="text-small text-muted">用户159****2345</div>
+                                </td>
+                                <td>话剧《暗恋桃花源》</td>
+                                <td>2025-03-10 19:30</td>
+                                <td>
+                                    <div>一楼 5排6号</div>
+                                    <div class="text-small text-muted">¥480 × 2</div>
+                                </td>
+                                <td>2025-01-25 19:20:00</td>
+                                <td>2025-01-25 19:35:00</td>
+                                <td><span class="badge badge-success">已支付</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251830012</div>
+                                    <div class="text-small text-muted">用户186****6789</div>
+                                </td>
+                                <td>林俊杰演唱会</td>
+                                <td>2025-03-20 19:30</td>
+                                <td>
+                                    <div>看台一等 3排4号</div>
+                                    <div class="text-small text-muted">¥1580 × 1</div>
+                                </td>
+                                <td>2025-01-25 18:30:00</td>
+                                <td>2025-01-25 18:45:00</td>
+                                <td><span class="badge badge-gray">已取消</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">恢复</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251800034</div>
+                                    <div class="text-small text-muted">用户135****0123</div>
+                                </td>
+                                <td>五月天演唱会</td>
+                                <td>2025-02-15 19:30</td>
+                                <td>
+                                    <div>内场 10排15号</div>
+                                    <div class="text-small text-muted">¥1255 × 1</div>
+                                </td>
+                                <td>2025-01-25 18:00:00</td>
+                                <td>2025-01-25 18:15:00</td>
+                                <td><span class="badge badge-gray">已取消</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">恢复</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251730056</div>
+                                    <div class="text-small text-muted">用户138****4567</div>
+                                </td>
+                                <td>薛之谦演唱会</td>
+                                <td>2025-01-20 19:30</td>
+                                <td>
+                                    <div>看台一等 6排9号</div>
+                                    <div class="text-small text-muted">¥1080 × 1</div>
+                                </td>
+                                <td>2025-01-25 17:30:00</td>
+                                <td>2025-01-25 17:45:00</td>
+                                <td><span class="badge badge-primary">占用中</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-delete">释放</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; color: #1976d2;">ORD202501251700078</div>
+                                    <div class="text-small text-muted">用户159****8901</div>
+                                </td>
+                                <td>音乐剧《剧院魅影》</td>
+                                <td>2025-03-25 19:30</td>
+                                <td>
+                                    <div>二楼 4排5号</div>
+                                    <div class="text-small text-muted">¥680 × 1</div>
+                                </td>
+                                <td>2025-01-25 17:00:00</td>
+                                <td>2025-01-25 17:15:00</td>
+                                <td><span class="badge badge-primary">占用中</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-delete">释放</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="admin-table-footer">
+                        <div class="text-muted">显示 1-10 条，共 234 条</div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                            <button class="btn btn-primary btn-small">1</button>
+                            <button class="btn btn-secondary btn-small">2</button>
+                            <button class="btn btn-secondary btn-small">3</button>
+                            <button class="btn btn-secondary btn-small">...</button>
+                            <button class="btn btn-secondary btn-small">24</button>
+                            <button class="btn btn-secondary btn-small">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

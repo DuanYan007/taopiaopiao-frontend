@@ -3,7 +3,14 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(node:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(for file in \"O:\\Project\\taopiaopiao\\frontend\\event-detail.html\" \"O:\\Project\\taopiaopiao\\frontend\\session-list.html\" \"O:\\Project\\taopiaopiao\\frontend\\seat-selection.html\" \"O:\\Project\\taopiaopiao\\frontend\\ticket-tier-selection.html\" \"O:\\Project\\taopiaopiao\\frontend\\reservation-result.html\" \"O:\\Project\\taopiaopiao\\frontend\\order-confirm.html\")",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(for file in \"O:\\Project\\taopiaopiao\\frontend\\attendee-management.html\" \"O:\\Project\\taopiaopiao\\frontend\\address-management.html\" \"O:\\Project\\taopiaopiao\\frontend\\account-security.html\")",
+      "Bash(find:*)",
+      "Bash(while read file)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,7 +1,8 @@
 {
   "project_name": "taopiaopiao",
+  "current_phase": "frontend-development",
   "tech_stack": {
-    "frontend": ["HTML", "CSS", "静态页面"],
+    "frontend": ["HTML", "CSS", "JavaScript (待选型)"],
     "design": ["响应式设计", "卡片布局", "组件化样式"]
   },
   "completed_features": [
@@ -86,6 +87,16 @@
       "error": "AI功能模块的编辑页面缺失",
       "solution": "创建了两个AI功能编辑页面：1) admin-knowledge-edit.html（知识库管理）：包含基本信息、答案内容、AI配置（关键词、相似问题、优先级）、状态设置、AI对话预览等模块；2) admin-template-edit.html（推送模板）：包含基本信息、多渠道推送内容（APP、短信、微信）、变量说明、触发条件、推送对象、实时预览等模块。支持变量插值和多渠道推送",
       "timestamp": "2025-01-26"
+    },
+    {
+      "error": "缺少真实开发的前端目录",
+      "solution": "将产品原型(frontend-exp)复制到新的frontend目录，并清理所有模拟数据。创建frontend/README.md开发指南。index.html已清理完成，移除所有硬编码的演出数据，添加加载状态和空状态提示。CSS添加了loading-spinner和empty-state样式",
+      "timestamp": "2025-01-26"
+    },
+    {
+      "error": "缺少本地开发环境部署方案",
+      "solution": "创建了完整的Nginx本地部署方案：1) 3个nginx配置文件（完整版/简化版/开发版）支持静态资源服务和API反向代理；2) Windows和Linux/Mac启动脚本；3) API配置文件封装（config.js + api-example.js）；4) 完整的快速开始指南和故障排除方案。C端8080端口，Admin端8081端口，API自动转发到后端3000端口",
+      "timestamp": "2025-01-26"
     }
   ],
   "patterns": [
@@ -108,6 +119,26 @@
       "name": "按钮样式",
       "usage": "统一的按钮风格",
       "template": ".btn, .btn-primary, .btn-secondary, .btn-outline"
+    },
+    {
+      "name": "加载状态",
+      "usage": "数据加载时的等待提示",
+      "template": ".loading-state + .loading-spinner"
+    },
+    {
+      "name": "空状态",
+      "usage": "无数据时的友好提示",
+      "template": ".empty-state + .empty-state-icon"
+    },
+    {
+      "name": "API代理配置",
+      "usage": "Nginx反向代理配置",
+      "template": "location /api/ { proxy_pass http://backend; }"
+    },
+    {
+      "name": "API请求封装",
+      "usage": "统一的fetch封装",
+      "template": "async function request(url, options) { ... }"
     }
   ]
 }

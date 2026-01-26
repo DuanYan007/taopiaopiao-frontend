@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演出管理 - 淘票票管理后台</title>
+    <link rel="stylesheet" href="../assets/css/common.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 侧边栏 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <div class="admin-logo">
+                    <span style="font-size: 24px;">🎫</span>
+                    <span>淘票票</span>
+                </div>
+                <div class="text-small" style="color: rgba(255,255,255,0.5); margin-top: 4px;">管理后台</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="admin-index.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>数据概览</span>
+                </a>
+                <a href="admin-events.html" class="admin-nav-item active">
+                    <span class="admin-nav-icon">🎭</span>
+                    <span>演出管理</span>
+                </a>
+                <a href="admin-sessions.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📅</span>
+                    <span>场次管理</span>
+                </a>
+                <a href="admin-seats.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">💺</span>
+                    <span>座位管理</span>
+                </a>
+                <a href="admin-orders.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📋</span>
+                    <span>订单管理</span>
+                </a>
+
+                <div class="admin-nav-section">AI功能</div>
+                <a href="admin-knowledge.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📚</span>
+                    <span>知识库管理</span>
+                </a>
+                <a href="admin-rag-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">🔍</span>
+                    <span>RAG配置</span>
+                </a>
+                <a href="admin-templates.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📢</span>
+                    <span>推送模板</span>
+                </a>
+                <a href="admin-ai-analytics.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📈</span>
+                    <span>AI分析</span>
+                </a>
+
+                <div class="admin-nav-section">系统管理</div>
+                <a href="admin-dashboard.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📊</span>
+                    <span>统计看板</span>
+                </a>
+                <a href="admin-config.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">⚙️</span>
+                    <span>运营配置</span>
+                </a>
+                <a href="admin-logs.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">📝</span>
+                    <span>操作日志</span>
+                </a>
+                <a href="admin-roles.html" class="admin-nav-item">
+                    <span class="admin-nav-icon">👥</span>
+                    <span>权限角色</span>
+                </a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="flex" style="align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">管</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px;">管理员</div>
+                        <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
+                    </div>
+                </div>
+                <a href="admin-login.html" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-title">演出管理</div>
+                <div class="admin-header-actions">
+                    <a href="admin-event-edit.html" class="btn btn-primary">+ 新建演出</a>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="搜索演出名称、艺人...">
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部状态</option>
+                        <option>上架</option>
+                        <option>下架</option>
+                        <option>草稿</option>
+                    </select>
+                    <select class="form-select" style="width: 150px;">
+                        <option>全部类型</option>
+                        <option>演唱会</option>
+                        <option>话剧歌剧</option>
+                        <option>展览休闲</option>
+                        <option>体育</option>
+                    </select>
+                    <button class="btn btn-primary">搜索</button>
+                </div>
+
+                <!-- 演出列表 -->
+                <div class="admin-table">
+                    <div class="admin-table-header">
+                        <div class="admin-table-title">演出列表</div>
+                        <div class="text-muted">共 8 条记录</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>演出名称</th>
+                                <th>类型</th>
+                                <th>艺人/主办方</th>
+                                <th>城市</th>
+                                <th>状态</th>
+                                <th>价格区间</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1001</td>
+                                <td>周杰伦2025嘉年华世界巡回演唱会-上海站</td>
+                                <td>演唱会</td>
+                                <td>周杰伦</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥380 - ¥2580</td>
+                                <td>2025-01-15</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1002</td>
+                                <td>林俊杰JJ20世界巡回演唱会-上海站</td>
+                                <td>演唱会</td>
+                                <td>林俊杰</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥480 - ¥1880</td>
+                                <td>2025-01-12</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1003</td>
+                                <td>经典音乐剧《剧院魅影》中文版</td>
+                                <td>话剧歌剧</td>
+                                <td>上海文化广场</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥180 - ¥1280</td>
+                                <td>2025-01-10</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1004</td>
+                                <td>NBA季前赛：湖人vs勇士</td>
+                                <td>体育</td>
+                                <td>NBA中国</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-danger">已售罄</span></td>
+                                <td>¥680 - ¥4880</td>
+                                <td>2025-01-08</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1005</td>
+                                <td>沉浸式艺术展《梵高星空》</td>
+                                <td>展览休闲</td>
+                                <td>上海展览中心</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥98 - ¥268</td>
+                                <td>2025-01-05</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1006</td>
+                                <td>话剧《白鹿原》</td>
+                                <td>话剧歌剧</td>
+                                <td>陕西人民艺术剧院</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥180 - ¥880</td>
+                                <td>2025-01-03</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1007</td>
+                                <td>2025上海草莓音乐节</td>
+                                <td>演唱会</td>
+                                <td>摩登天空</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-warning">即将开售</span></td>
+                                <td>¥360 - ¥1280</td>
+                                <td>2025-01-01</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>1008</td>
+                                <td>儿童剧《小猪佩奇》</td>
+                                <td>儿童亲子</td>
+                                <td>上海儿童艺术剧场</td>
+                                <td>上海</td>
+                                <td><span class="badge badge-success">上架</span></td>
+                                <td>¥120 - ¥480</td>
+                                <td>2024-12-28</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-view">查看</button>
+                                        <button class="action-btn action-btn-edit">编辑</button>
+                                        <button class="action-btn action-btn-delete">下架</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="admin-table-footer">
+                        <div class="text-muted">显示 1-8 条，共 8 条</div>
+                        <div class="flex" style="gap: 8px;">
+                            <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                            <button class="btn btn-primary btn-small">1</button>
+                            <button class="btn btn-secondary btn-small">下一页</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

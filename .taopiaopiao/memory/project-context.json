@@ -1,8 +1,10 @@
 {
   "project_name": "taopiaopiao",
-  "current_phase": "frontend-development",
+  "current_phase": "backend-design",
   "tech_stack": {
     "frontend": ["HTML", "CSS", "JavaScript (待选型)"],
+    "backend": ["待选型", "RESTful API"],
+    "database": ["MySQL / PostgreSQL"],
     "design": ["响应式设计", "卡片布局", "组件化样式"]
   },
   "completed_features": [
@@ -50,6 +52,22 @@
         "所有数据为模拟数据，真实拟态"
       ],
       "timestamp": "2025-01-25"
+    },
+    {
+      "name": "演出场次模块反向建模",
+      "files": [
+        "docs/reverse-modeling-events-sessions.md"
+      ],
+      "key_points": [
+        "基于admin-events.html和admin-sessions.html两个前端页面进行反向推导",
+        "设计了5个核心业务实体：Event(演出)、Session(场次)、TicketTier(票档)、Venue(场馆)、Seat(座位)",
+        "设计了5个数据库表，包含完整字段定义、索引、外键关系",
+        "设计了20+个RESTful API接口，覆盖CRUD、筛选、统计、批量操作",
+        "定义了状态机规则、数据约束、价格逻辑等业务规则",
+        "提供了metadata扩展字段设计，预留未来扩展空间",
+        "包含了技术实现建议：数据库优化、并发控制、API性能优化"
+      ],
+      "timestamp": "2025-01-26"
     }
   ],
   "decisions": [
@@ -70,6 +88,24 @@
       "choice": "分为C端和Admin端",
       "reason": "C端面向普通用户，Admin端面向管理员，功能分离清晰",
       "timestamp": "2025-01-25"
+    },
+    {
+      "topic": "数据库设计方法",
+      "choice": "从前端HTML反向推导数据模型",
+      "reason": "基于已存在的前端原型页面，分析其中的业务元素（搜索框、筛选器、列表字段、操作按钮）来推导合理的数据库表结构和API接口设计",
+      "timestamp": "2025-01-26"
+    },
+    {
+      "topic": "实体关系设计",
+      "choice": "Event(演出)与Session(场次)采用1:N关系",
+      "reason": "一个演出可以有多个场次（不同时间），但每个场次只属于一个演出。这种设计支持同一演出在不同日期、不同场馆的场次安排",
+      "timestamp": "2025-01-26"
+    },
+    {
+      "topic": "扩展性设计",
+      "choice": "在关键表中增加metadata字段（JSON类型）",
+      "reason": "预留下未来扩展空间，避免频繁修改表结构。metadata可存储业务特定的配置、自定义属性等",
+      "timestamp": "2025-01-26"
     }
   ],
   "errors_solved": [
@@ -139,6 +175,36 @@
       "name": "API请求封装",
       "usage": "统一的fetch封装",
       "template": "async function request(url, options) { ... }"
+    },
+    {
+      "name": "数据表设计模式",
+      "usage": "所有业务表统一的基础字段",
+      "template": "id (PK) + created_at + updated_at + metadata (JSON)"
+    },
+    {
+      "name": "状态枚举设计",
+      "usage": "业务状态的数据库存储",
+      "template": "使用ENUM类型存储状态，如：draft/on_sale/off_sale/sold_out"
+    },
+    {
+      "name": "RESTful API命名",
+      "usage": "API路径设计规范",
+      "template": "GET /api/resources (列表), POST /api/resources (创建), GET /api/resources/{id} (详情), PUT /api/resources/{id} (更新), DELETE /api/resources/{id} (删除)"
+    },
+    {
+      "name": "API响应格式",
+      "usage": "统一的后端API响应结构",
+      "template": "{ code: 0, message: \"success\", data: {...} }"
+    },
+    {
+      "name": "分页查询模式",
+      "usage": "列表API支持分页",
+      "template": "Query参数：page, page_size, 响应：{ total, page, page_size, items }"
+    },
+    {
+      "name": "外键关系设计",
+      "usage": "表关联的数据库实现",
+      "template": "FOREIGN KEY (column_name) REFERENCES related_table(id)"
     }
   ]
 }

@@ -1,0 +1,23 @@
+CREATE TABLE seats (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  session_id BIGINT NOT NULL COMMENT '所属场次ID',
+  ticket_tier_id BIGINT COMMENT '票档ID',
+  seat_row VARCHAR(20) NOT NULL COMMENT '行号',
+  seat_column VARCHAR(20) NOT NULL COMMENT '列号',
+  seat_number VARCHAR(50) NOT NULL COMMENT '完整座位号',
+  area VARCHAR(50) COMMENT '区域',
+  price DECIMAL(10,2) NOT NULL COMMENT '座位价格',
+  status ENUM('available','sold','locked','unavailable') NOT NULL DEFAULT 'available' COMMENT '状态',
+  locked_by BIGINT COMMENT '锁定者',
+  locked_until DATETIME COMMENT '锁定过期时间',
+  order_id BIGINT COMMENT '订单ID',
+  metadata JSON COMMENT '扩展字段',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+  FOREIGN KEY (ticket_tier_id) REFERENCES ticket_tiers(id),
+  INDEX idx_session_id (session_id),
+  INDEX idx_status (status),
+  INDEX idx_seat_number (seat_number),
+  INDEX idx_locked_until (locked_until)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='座位表';

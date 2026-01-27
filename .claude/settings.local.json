@@ -12,7 +12,8 @@
       "Bash(while read file)",
       "Bash(test:*)",
       "Bash(for:*)",
-      "Bash(do sed:*)"
+      "Bash(do sed:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

@@ -18,34 +18,28 @@
             </div>
 
             <!-- 登录表单 -->
-            <div class="form-group">
-                <label class="form-label">管理员账号</label>
-                <input type="text" class="form-input" placeholder="请输入管理员账号">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">密码</label>
-                <input type="password" class="form-input" placeholder="请输入密码">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">验证码</label>
-                <div class="flex" style="gap: 12px;">
-                    <input type="text" class="form-input" placeholder="请输入验证码">
-                    <div style="width: 120px; height: 42px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; letter-spacing: 4px;">
-                        7K3M
-                    </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">管理员账号</label>
+                    <input type="text" class="form-input" name="username" placeholder="请输入管理员账号" required>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" style="margin-right: 8px;">
-                    <span class="text-small">记住登录状态</span>
-                </label>
-            </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" name="password" placeholder="请输入密码" required>
+                </div>
 
-            <button class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 14px; font-size: 16px;" onclick="location.href='admin-index.html'">登录</button>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="remember" style="margin-right: 8px;">
+                        <span class="text-small">记住登录状态</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px; padding: 14px; font-size: 16px;">登录</button>
+
+                <div id="errorMessage" class="text-center" style="margin-top: 16px; color: #d32f2f; display: none;"></div>
+            </form>
 
             <div class="text-center text-small text-muted" style="margin-top: 32px;">
                 忘记密码？<a href="#" style="color: #1976d2;">联系系统管理员</a>
@@ -62,5 +56,73 @@
             </div>
         </div>
     </div>
+
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // 登录表单处理
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const formData = new FormData(e.target);
+            const username = formData.get('username').trim();
+            const password = formData.get('password');
+            const remember = formData.get('remember') === 'on';
+
+            // 简单验证
+            if (!username || !password) {
+                showError('请输入用户名和密码');
+                return;
+            }
+
+            // 禁用提交按钮
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = '登录中...';
+
+            try {
+                // 调用登录接口
+                const response = await fetch('/api/admin/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 0) {
+                    // 登录成功
+                    const { token, userInfo } = result.data;
+                    saveToken(token, userInfo, remember);
+                    window.location.href = 'admin-index.html';
+                } else {
+                    // 登录失败
+                    showError(result.message || '登录失败');
+                }
+            } catch (error) {
+                showError('网络错误，请稍后重试');
+                console.error('登录错误:', error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        });
+
+        // 显示错误信息
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // 隐藏错误信息
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.style.display = 'none';
+        }
+    </script>
 </body>
 </html>

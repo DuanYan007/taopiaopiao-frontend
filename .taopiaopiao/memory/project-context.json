@@ -89,6 +89,85 @@
         "提供了前端JavaScript处理示例和后端数据处理流程"
       ],
       "timestamp": "2025-01-26"
+    },
+    {
+      "name": "前端与SpringBoot后端接口对接方案",
+      "files": [
+        "docs/frontend-api-integration-guide.md"
+      ],
+      "key_points": [
+        "从纯前端视角提供JWT登录认证的接口对接方案",
+        "明确了前端需要实现的逻辑：登录表单提交、Token存储、API请求携带Token、401错误处理",
+        "定义了登录接口规范：POST /api/admin/auth/login，返回 { code, data: { token, userInfo } }",
+        "提供了完整的登录页面HTML代码示例（删除验证码，添加登录逻辑）",
+        "说明了Token存储策略：sessionStorage（默认）和localStorage（记住我）",
+        "提供了统一API请求封装示例，自动处理Token和401跳转",
+        "明确了后端需要配合实现的内容：登录接口、JWT拦截器、CORS配置、统一响应格式",
+        "列出了完整的API接口清单和错误码约定",
+        "提供了测试用例和常见问题解答"
+      ],
+      "timestamp": "2025-01-27"
+    },
+    {
+      "name": "JWT Token有效期管理方案(后端实现)",
+      "files": [
+        "docs/backend-jwt-token-management.md"
+      ],
+      "key_points": [
+        "明确了Token有效性定义：Token有效 = (JWT未过期) AND (Token不在黑名单中)",
+        "采用JWT + Token黑名单混合方案：JWT自动过期机制 + 登出主动失效",
+        "JWT包含关键Claims：sub(用户ID)、username(用户名)、jti(唯一Token ID)、iat(签发时间)、exp(过期时间24小时)",
+        "登出时将Token的jti加入Redis黑名单，设置TTL为Token剩余有效期，实现自动清理",
+        "后端拦截器验证流程：解析JWT → 检查exp过期 → 查询Redis黑名单 → 验证通过放行",
+        "提供了完整的SpringBoot实现代码：JwtTokenUtil工具类、登录接口、登出接口、拦截器配置",
+        "Token失效场景：JWT过期(自动)、用户登出(黑名单)、密码修改(可选)、强制下线(可选)",
+        "使用Redis存储黑名单的优势：高性能、自动TTL过期、减少数据库压力",
+        "提供了完整的测试用例和安全建议：BCrypt密码加密、HTTPS传输、防暴力破解",
+        "包含实施清单：必须实现和可选实现的功能点"
+      ],
+      "timestamp": "2025-01-27"
+    },
+    {
+      "name": "前端Token有效期管理方案",
+      "files": [
+        "docs/frontend-token-lifecycle-management.md"
+      ],
+      "key_points": [
+        "从纯前端视角说明Token的生命周期管理，不涉及后端实现细节",
+        "前端核心原则：只存储不验证、统一处理401、被动登出、主动登出、简单可靠",
+        "Token存储策略：sessionStorage(默认，关闭浏览器清除) + localStorage(记住我，持久化)",
+        "前端判断Token有效性的唯一方式：通过后端API响应，401表示Token无效，200表示有效",
+        "前端不需要做的事情：不解析JWT验证过期、不实现Token黑名单、不计算Token剩余时间",
+        "提供了完整的auth.js和api.js代码示例：Token存储、获取、清除、登出等功能",
+        "统一API请求封装：自动携带Token、统一处理401(清除Token并跳转登录页)、处理403权限不足",
+        "登出流程：调用后端logout接口(通知后端加入黑名单) + 清除本地Token + 跳转登录页",
+        "页面加载检查：检查Token是否存在(不能验证有效性)，存在则发起API请求，401自动跳转登录页",
+        "常见问题解答：为什么不在前端解析JWT、为什么不需要定时刷新、如何多标签页同步登录状态等"
+      ],
+      "timestamp": "2025-01-27"
+    },
+    {
+      "name": "管理端前端Token管理实现",
+      "files": [
+        "frontend-admin/assets/js/auth.js",
+        "frontend-admin/assets/js/api.js",
+        "frontend-admin/admin-login.html",
+        "frontend-admin/admin-index.html",
+        "docs/backend-api-specification.md"
+      ],
+      "key_points": [
+        "创建了auth.js认证模块：getToken、saveToken、getUserInfo、isAuthenticated、clearToken、logout等函数",
+        "创建了api.js请求封装：request、get、post、put、del函数，自动处理401和403错误",
+        "修改了admin-login.html：删除验证码组件，添加表单提交逻辑，调用登录接口，存储Token",
+        "修改了admin-index.html：添加登录状态检查、显示用户信息、绑定登出按钮",
+        "创建了后端接口规范文档backend-api-specification.md：包含登录/登出接口、JWT规范、拦截器要求、错误码定义、CORS配置、数据库设计、安全要求、测试用例",
+        "登录流程：用户输入账号密码 → POST /api/admin/auth/login → 接收{token, userInfo} → 存储Token → 跳转管理后台",
+        "登出流程：点击登出按钮 → POST /api/admin/auth/logout → 清除本地Token → 跳转登录页",
+        "Token过期处理：任何API请求返回401 → 自动清除Token → 跳转登录页",
+        "后端需要实现的接口：登录、登出、JWT生成验证、Token黑名单、拦截器、CORS配置",
+        "提供了完整的测试用例和实施清单供后端开发者参考"
+      ],
+      "timestamp": "2025-01-27"
     }
   ],
   "decisions": [
@@ -127,6 +206,36 @@
       "choice": "在关键表中增加metadata字段（JSON类型）",
       "reason": "预留下未来扩展空间，避免频繁修改表结构。metadata可存储业务特定的配置、自定义属性等",
       "timestamp": "2025-01-26"
+    },
+    {
+      "topic": "认证方案选型",
+      "choice": "JWT Token认证 (SpringBoot后端实现)",
+      "reason": "后端使用SpringBoot,由后端同事实现JWT生成和验证拦截器,前端只需负责Token存储和携带",
+      "timestamp": "2025-01-27"
+    },
+    {
+      "topic": "前后端分工",
+      "choice": "后端负责JWT实现,前端负责接口对接",
+      "reason": "遵循职责分离原则,后端处理安全逻辑(Token生成、验证、拦截器),前端处理UI逻辑(表单提交、Token存储、页面跳转)",
+      "timestamp": "2025-01-27"
+    },
+    {
+      "topic": "接口文档优先",
+      "choice": "先定义接口规范,再各自实现",
+      "reason": "前后端并行开发,通过接口文档约定数据格式,避免互相等待",
+      "timestamp": "2025-01-27"
+    },
+    {
+      "topic": "Token有效期管理方案",
+      "choice": "JWT过期 + Redis黑名单",
+      "reason": "JWT的exp claim实现自动过期(24小时),登出时将Token的jti加入Redis黑名单实现主动失效,Redis的TTL机制自动清理过期记录",
+      "timestamp": "2025-01-27"
+    },
+    {
+      "topic": "JWT唯一标识jti",
+      "choice": "每个Token包含唯一的jti claim",
+      "reason": "用于Token黑名单的唯一标识,支持精确控制单个Token的失效,而不影响用户的其他设备登录",
+      "timestamp": "2025-01-27"
     }
   ],
   "errors_solved": [
@@ -226,6 +335,31 @@
       "name": "外键关系设计",
       "usage": "表关联的数据库实现",
       "template": "FOREIGN KEY (column_name) REFERENCES related_table(id)"
+    },
+    {
+      "name": "JWT认证流程",
+      "usage": "用户登录认证",
+      "template": "前端收集用户名密码 → POST /api/auth/login → 后端验证并生成JWT Token → 前端存储Token → 所有API请求携带Authorization: Bearer {token} → 后端拦截器验证Token → 返回数据或401"
+    },
+    {
+      "name": "Token存储策略",
+      "usage": "客户端Token持久化",
+      "template": "sessionStorage存储（默认） + localStorage存储（记住登录状态）"
+    },
+    {
+      "name": "API请求拦截器",
+      "usage": "统一处理API请求和响应",
+      "template": "request(url, options) → 自动添加Token → 处理401跳转登录 → 处理403权限不足 → 统一错误处理"
+    },
+    {
+      "name": "登录状态检查",
+      "usage": "页面加载时验证用户是否登录",
+      "template": "window.addEventListener('DOMContentLoaded', () => { if (!isAuthenticated()) window.location.href = 'admin-login.html'; })"
+    },
+    {
+      "name": "权限控制RBAC",
+      "usage": "基于角色的访问控制",
+      "template": "用户表包含role和permissions字段，JWT Token包含用户权限信息，后端拦截器验证用户权限"
     }
   ]
 }

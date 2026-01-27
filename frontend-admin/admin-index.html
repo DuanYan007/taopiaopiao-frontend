@@ -90,7 +90,7 @@
                         <div class="text-small" style="opacity: 0.7;">admin@taopiaopiao.com</div>
                     </div>
                 </div>
-                <a href="admin-login.html" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
+                <a href="#" class="logout-btn" style="color: rgba(255,255,255,0.5); font-size: 13px;">退出登录</a>
             </div>
         </aside>
 
@@ -332,5 +332,35 @@
             </div>
         </main>
     </div>
+
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+        // 页面加载时检查登录状态
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!isAuthenticated()) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            // 显示用户信息
+            const userInfo = getUserInfo();
+            if (userInfo) {
+                const userNameEl = document.querySelector('.admin-sidebar-footer .flex div div');
+                if (userNameEl) {
+                    userNameEl.textContent = userInfo.realName || userInfo.username;
+                }
+            }
+
+            // 绑定登出按钮
+            const logoutBtn = document.querySelector('.logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

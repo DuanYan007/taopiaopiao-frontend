@@ -145,12 +145,19 @@
                         </div>
                         <div class="admin-form-row">
                             <div class="form-group">
-                                <label class="form-label">场馆 <span style="color: #d32f2f;">*</span></label>
-                                <input type="text" class="form-input" placeholder="请输入场馆名称" required>
+                                <label class="form-label">默认场馆 <span style="color: #d32f2f;">*</span></label>
+                                <select class="form-select" required>
+                                    <option value="">请选择场馆</option>
+                                    <option value="1">国家体育场（鸟巢）</option>
+                                    <option value="2">上海体育场</option>
+                                    <option value="3">北京工人体育场</option>
+                                    <option value="4">广州体育馆</option>
+                                </select>
+                                <input type="hidden" name="venue_id" value="">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">详细地址</label>
-                                <input type="text" class="form-input" placeholder="请输入详细地址">
+                                <label class="form-label">副标题</label>
+                                <input type="text" class="form-input" name="subtitle" placeholder="如：嘉年华世界巡回演唱会-上海站">
                             </div>
                         </div>
                     </div>
@@ -160,22 +167,29 @@
                         <div class="admin-form-section-title">时间信息</div>
                         <div class="admin-form-row">
                             <div class="form-group">
-                                <label class="form-label">演出开始日期 <span style="color: #d32f2f;">*</span></label>
-                                <input type="date" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">演出开始时间 <span style="color: #d32f2f;">*</span></label>
-                                <input type="time" class="form-input" required>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
+                                <label class="form-label">演出开始日期</label>
+                                <input type="date" class="form-input" name="event_start_date">
                                 <label class="form-label">演出结束日期</label>
-                                <input type="date" class="form-input">
+                                <input type="date" class="form-input" name="event_end_date">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">演出时长（分钟）</label>
-                                <input type="number" class="form-input" placeholder="请输入演出时长" min="1">
+                                <input type="number" class="form-input" name="metadata[duration]" placeholder="请输入演出时长" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 预售时间 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">预售时间</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">开售时间 <span style="color: #d32f2f;">*</span></label>
+                                <input type="datetime-local" class="form-input" name="sale_start_time" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">停售时间</label>
+                                <input type="datetime-local" class="form-input" name="sale_end_time">
                             </div>
                         </div>
                     </div>
@@ -192,22 +206,26 @@
                                 <div class="admin-form-row">
                                     <div class="form-group">
                                         <label class="form-label">票档名称</label>
-                                        <input type="text" class="form-input" placeholder="如：VIP、一等座、二等座">
+                                        <input type="text" class="form-input" name="ticket_tiers[0].name" placeholder="如：VIP、一等座、二等座" required>
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">价格（元）<span style="color: #d32f2f;">*</span></label>
-                                        <input type="number" class="form-input" placeholder="请输入价格" min="0" step="0.01">
+                                        <input type="number" class="form-input" name="ticket_tiers[0].price" placeholder="请输入价格" min="0" step="0.01" required>
                                     </div>
                                 </div>
                                 <div class="admin-form-row">
                                     <div class="form-group">
-                                        <label class="form-label">座位数</label>
-                                        <input type="number" class="form-input" placeholder="请输入该票档座位总数" min="1">
+                                        <label class="form-label">座位颜色</label>
+                                        <input type="color" class="form-input" name="ticket_tiers[0].color" value="#FF5722" style="height: 38px;">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">每人限购</label>
-                                        <input type="number" class="form-input" placeholder="每单最多购买数量" min="1" value="4">
+                                        <input type="number" class="form-input" name="ticket_tiers[0].max_purchase" placeholder="每单最多购买数量" min="1" value="4">
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">票档说明</label>
+                                    <input type="text" class="form-input" name="ticket_tiers[0].description" placeholder="如：含周边礼包、优先入场">
                                 </div>
                             </div>
 
@@ -220,65 +238,26 @@
                         <div class="admin-form-section-title">演出详情</div>
                         <div class="form-group">
                             <label class="form-label">演出海报</label>
-                            <div style="border: 2px dashed #ddd; border-radius: 4px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;">
-                                <div style="font-size: 48px; color: #999; margin-bottom: 12px;">📷</div>
-                                <div style="color: #666;">点击上传海报图片</div>
-                                <div class="text-small text-muted" style="margin-top: 8px;">建议尺寸：800×1000px，支持 JPG、PNG 格式，大小不超过 5MB</div>
-                            </div>
+                            <input type="url" class="form-input" name="cover_image" placeholder="请输入海报图片URL">
+                            <div class="text-small text-muted" style="margin-top: 4px;">建议尺寸：800×1000px，大小不超过 5MB</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">演出图片</label>
+                            <input type="url" class="form-input" name="images[]" placeholder="请输入更多图片URL，用逗号分隔">
+                            <div class="text-small text-muted" style="margin-top: 4px;">多图URL用英文逗号分隔</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">演出简介</label>
-                            <textarea class="form-textarea" placeholder="请输入演出简介，将显示在演出详情页" rows="4"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">详细描述</label>
-                            <textarea class="form-textarea" placeholder="请输入演出详细介绍、艺人介绍、节目单等信息" rows="8"></textarea>
+                            <textarea class="form-textarea" name="description" placeholder="请输入演出简介，将显示在演出详情页" rows="4"></textarea>
                         </div>
                         <div class="admin-form-row">
                             <div class="form-group">
                                 <label class="form-label">温馨提示</label>
-                                <textarea class="form-textarea" placeholder="如：儿童入场提示、禁止携带物品等" rows="3"></textarea>
+                                <textarea class="form-textarea" name="metadata[tips]" placeholder="如：儿童入场提示、禁止携带物品等" rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">购票须知</label>
-                                <textarea class="form-textarea" placeholder="如：退换票政策、实名制要求等" rows="3"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 购票设置 -->
-                    <div class="admin-form-section">
-                        <div class="admin-form-section-title">购票设置</div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">开售时间 <span style="color: #d32f2f;">*</span></label>
-                                <input type="datetime-local" class="form-input" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">停售时间</label>
-                                <input type="datetime-local" class="form-input">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">是否实名制</label>
-                                <div style="padding: 8px 0;">
-                                    <label class="switch">
-                                        <input type="checkbox">
-                                        <span class="switch-slider"></span>
-                                    </label>
-                                    <span style="margin-left: 12px; color: #666;">需要实名购票和入场</span>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">是否选座</label>
-                                <div style="padding: 8px 0;">
-                                    <label class="switch">
-                                        <input type="checkbox" checked>
-                                        <span class="switch-slider"></span>
-                                    </label>
-                                    <span style="margin-left: 12px; color: #666;">允许用户在线选座</span>
-                                </div>
+                                <textarea class="form-textarea" name="metadata[refund_policy]" placeholder="如：退换票政策、实名制要求等" rows="3"></textarea>
                             </div>
                         </div>
                     </div>
@@ -293,24 +272,24 @@
                                     <input type="radio" name="status" value="draft"> 草稿
                                 </label>
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="radio" name="status" value="published" checked> 立即上架
+                                    <input type="radio" name="status" value="on_sale" checked> 立即上架
                                 </label>
-                                <label style="cursor: pointer;">
-                                    <input type="radio" name="status" value="scheduled"> 定时上架
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="radio" name="status" value="off_sale"> 下架
                                 </label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">推荐设置</label>
+                            <label class="form-label">标签设置</label>
                             <div style="padding: 8px 0;">
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="checkbox"> 首页推荐
+                                    <input type="checkbox" name="tags[]" value="recommended"> 首页推荐
                                 </label>
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="checkbox"> 热门演出
+                                    <input type="checkbox" name="tags[]" value="hot"> 热门演出
                                 </label>
-                                <label style="cursor: pointer;">
-                                    <input type="checkbox"> 即将开售
+                                <label style="margin-right: 24px; cursor: pointer;">
+                                    <input type="checkbox" name="tags[]" value="coming_soon"> 即将开售
                                 </label>
                             </div>
                         </div>

@@ -68,6 +68,27 @@
         "包含了技术实现建议：数据库优化、并发控制、API性能优化"
       ],
       "timestamp": "2025-01-26"
+    },
+    {
+      "name": "演出创建表单与数据库字段对齐",
+      "files": [
+        "frontend-admin/admin-event-edit.html",
+        "docs/reverse-modeling-events-sessions.md",
+        "docs/event-form-database-mapping.md"
+      ],
+      "key_points": [
+        "修改admin-event-edit.html表单，确保所有字段name属性与数据库字段一致",
+        "移除了不合理的字段（演出开始时间/结束时间，这些应在sessions表）",
+        "场馆改为下拉选择器，关联venue_id外键",
+        "票档使用ticket_tiers[n].field格式，对应ticket_tiers表",
+        "扩展字段（温馨提示、购票须知）使用metadata[field]格式存储",
+        "演出类型ENUM增加了dance（舞蹈芭蕾）选项",
+        "状态值改为数据库枚举值：draft/on_sale/off_sale/sold_out",
+        "标签使用tags[]数组，值为推荐/热门/即将开售",
+        "创建了完整的字段映射文档event-form-database-mapping.md",
+        "提供了前端JavaScript处理示例和后端数据处理流程"
+      ],
+      "timestamp": "2025-01-26"
     }
   ],
   "decisions": [

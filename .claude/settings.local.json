@@ -10,7 +10,9 @@
       "Bash(for file in \"O:\\Project\\taopiaopiao\\frontend\\attendee-management.html\" \"O:\\Project\\taopiaopiao\\frontend\\address-management.html\" \"O:\\Project\\taopiaopiao\\frontend\\account-security.html\")",
       "Bash(find:*)",
       "Bash(while read file)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(for:*)",
+      "Bash(do sed:*)"
     ],
     "deny": [],
     "ask": []

@@ -88,16 +88,20 @@
 | id | BIGINT | ✅ | 主键，自增 |
 | name | VARCHAR(200) | ✅ | 演出名称 |
 | subtitle | VARCHAR(200) | ❌ | 副标题/描述 |
-| type | ENUM | ✅ | 演出类型：concert（演唱会）、theatre（话剧歌剧）、exhibition（展览休闲）、sports（体育）、music（音乐会）、kids（儿童亲子） |
+| type | ENUM | ✅ | 演出类型：concert（演唱会）、theatre（话剧歌剧）、exhibition（展览休闲）、sports（体育）、music（音乐会）、kids（儿童亲子）、dance（舞蹈芭蕾） |
 | artist | VARCHAR(100) | ❌ | 艺人/主办方 |
 | city | VARCHAR(50) | ✅ | 城市 |
 | venue_id | BIGINT | ❌ | 默认场馆ID（外键 → venues.id） |
 | description | TEXT | ❌ | 演出详情描述 |
 | cover_image | VARCHAR(500) | ❌ | 封面图片URL |
-| images | JSON | ❌ | 图片数组（多图） |
+| images | JSON | ❌ | 图片数组（多图URL） |
 | min_price | DECIMAL(10,2) | ❌ | 最低票价（冗余字段，便于查询） |
 | max_price | DECIMAL(10,2) | ❌ | 最高票价（冗余字段） |
 | status | ENUM | ✅ | 状态：draft（草稿）、on_sale（上架）、off_sale（下架）、sold_out（已售罄） |
+| sale_start_time | DATETIME | ❌ | 预售开始时间 |
+| sale_end_time | DATETIME | ❌ | 预售结束时间 |
+| tags | JSON | ❌ | 标签数组（如：["recommended", "hot", "coming_soon"]） |
+| metadata | JSON | ❌ | 扩展字段（详见下方说明） |
 | created_at | DATETIME | ✅ | 创建时间 |
 | updated_at | DATETIME | ✅ | 更新时间 |
 | created_by | BIGINT | ❌ | 创建人ID（外键 → admin_users.id） |
@@ -109,6 +113,20 @@
 - `idx_status` (status)
 - `idx_artist` (artist)
 - `idx_created_at` (created_at)
+
+**metadata 字段结构示例**:
+```json
+{
+  "duration": 120,
+  "age_limit": "18+",
+  "tips": "儿童入场提示、禁止携带物品等",
+  "refund_policy": "退换票政策、实名制要求等",
+  "producer": "某某制作公司",
+  "custom_fields": {
+    "special_note": "演出前2小时停止入场"
+  }
+}
+```
 
 ---
 
@@ -296,11 +314,17 @@
   "city": "上海",
   "venue_id": 1,
   "description": "演出详情...",
-  "cover_image": "https://...",
-  "images": ["https://...", "https://..."],
+  "cover_image": "https://example.com/poster.jpg",
+  "images": ["https://example.com/1.jpg", "https://example.com/2.jpg"],
   "sale_start_time": "2025-02-01T10:00:00Z",
   "sale_end_time": "2025-03-15T23:59:59Z",
-  "tags": ["热门", "推荐"],
+  "tags": ["recommended", "hot"],
+  "metadata": {
+    "duration": 120,
+    "age_limit": "18+",
+    "tips": "儿童入场提示、禁止携带物品等",
+    "refund_policy": "退换票政策、实名制要求等"
+  },
   "ticket_tiers": [
     {
       "name": "VIP内场",

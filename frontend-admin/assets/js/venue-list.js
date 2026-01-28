@@ -61,7 +61,7 @@ function renderTable(venues) {
             <td>${venue.district || '-'}</td>
             <td>${venue.address}</td>
             <td>${venue.capacity ? venue.capacity.toLocaleString() : '-'}</td>
-            <td>${venue.createTime}</td>
+            <td>${venue.createdAt || venue.createTime}</td>
             <td>
                 <div class="action-buttons">
                     <button class="action-btn action-btn-view" onclick="viewVenue(${venue.id})">查看</button>

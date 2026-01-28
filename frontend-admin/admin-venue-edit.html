@@ -104,7 +104,7 @@
             </header>
 
             <div class="admin-content">
-                <form class="admin-form">
+                <form id="venueForm" class="admin-form">
                     <!-- 基本信息 -->
                     <div class="admin-form-section">
                         <div class="admin-form-section-title">基本信息</div>
@@ -192,13 +192,16 @@
 
                     <!-- 表单操作按钮 -->
                     <div class="admin-form-actions">
-                        <button type="button" class="btn btn-secondary">取消</button>
-                        <button type="submit" class="btn btn-primary">保存场馆</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">保存场馆</button>
                     </div>
                 </form>
             </div>
         </main>
     </div>
 <script src="assets/js/auth-check.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/venue-edit.js"></script>
 </body>
 </html>

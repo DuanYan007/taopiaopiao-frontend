@@ -19,9 +19,11 @@ http://your-domain/api/admin
 **成功响应:**
 ```json
 {
-  "code": 0,
-  "message": "success",
-  "data": { ... }
+  "code": 200,
+  "msg": "success",
+  "data": { ... },
+  "timestamp": 1769583457651,
+  "success": true
 }
 ```
 
@@ -29,7 +31,9 @@ http://your-domain/api/admin
 ```json
 {
   "code": 错误码,
-  "message": "错误信息描述"
+  "msg": "错误信息描述",
+  "timestamp": 1769583457651,
+  "success": false
 }
 ```
 
@@ -73,17 +77,19 @@ Content-Type: application/json
 **响应 (成功):**
 ```json
 {
-  "code": 0,
-  "message": "登录成功",
+  "code": 200,
+  "msg": "登录成功",
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsImp0aSI6Ii1hYmMxMjMtMTIzIiwiaWF0IjoxNzA2NDg3MzAwLCJleHAiOjE3MDY1NzM3MDB9.xxx",
+    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwidXNlcm5hbWUiOiJhZG1pbiIsImp0aSI6IjIxMzFlMWFiLTMyYzUtNDU3ZC1hZDFiLWNkNTk5ODM4NzFlOSIsImlhdCI6MTc2OTU4MzQ1NywiZXhwIjoxNzY5NjY5ODU3fQ.ymz7ZpZXFcMaB_sf2sBz2Cz1S2bkVctiAD0d-6K3zdvP-VJzz4H9msiNQgMFiC9DIRuOJTqtHm65bkgfUXoxxA",
     "userInfo": {
       "id": 1,
       "username": "admin",
       "realName": "系统管理员",
       "email": "admin@taopiaopiao.com"
     }
-  }
+  },
+  "timestamp": 1769583457651,
+  "success": true
 }
 ```
 
@@ -91,7 +97,9 @@ Content-Type: application/json
 ```json
 {
   "code": 1001,
-  "message": "用户名或密码错误"
+  "msg": "用户名或密码错误",
+  "timestamp": 1769583457651,
+  "success": false
 }
 ```
 
@@ -121,8 +129,10 @@ Authorization: Bearer {token}
 **响应:**
 ```json
 {
-  "code": 0,
-  "message": "登出成功"
+  "code": 200,
+  "msg": "登出成功",
+  "timestamp": 1769583457651,
+  "success": true
 }
 ```
 
@@ -154,7 +164,9 @@ Authorization: Bearer {token}
 ```json
 {
   "code": 401,
-  "message": "登录已过期" 或 "令牌已失效" 或 "未提供认证令牌"
+  "msg": "登录已过期" 或 "令牌已失效" 或 "未提供认证令牌",
+  "timestamp": 1769583457651,
+  "success": false
 }
 ```
 

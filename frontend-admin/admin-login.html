@@ -93,14 +93,14 @@
 
                 const result = await response.json();
 
-                if (result.code === 0) {
+                if (result.code === 200) {
                     // 登录成功
                     const { token, userInfo } = result.data;
                     saveToken(token, userInfo, remember);
                     window.location.href = 'admin-index.html';
                 } else {
                     // 登录失败
-                    showError(result.message || '登录失败');
+                    showError(result.msg || '登录失败');
                 }
             } catch (error) {
                 showError('网络错误，请稍后重试');

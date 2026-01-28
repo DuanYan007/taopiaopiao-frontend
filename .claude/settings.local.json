@@ -13,7 +13,13 @@
       "Bash(test:*)",
       "Bash(for:*)",
       "Bash(do sed:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(do:*)",
+      "Bash(if:*)",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(fi:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

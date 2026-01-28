@@ -38,12 +38,12 @@ async function request(url, options = {}) {
 
         // 处理403 - 权限不足
         if (response.status === 403) {
-            throw new Error(result.message || '权限不足');
+            throw new Error(result.msg || '权限不足');
         }
 
         // 处理其他错误
-        if (result.code !== 0) {
-            throw new Error(result.message || '请求失败');
+        if (result.code !== 200) {
+            throw new Error(result.msg || '请求失败');
         }
 
         return result.data;

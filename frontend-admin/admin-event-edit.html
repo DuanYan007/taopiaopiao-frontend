@@ -100,18 +100,18 @@
             </header>
 
             <div class="admin-content">
-                <form class="admin-form">
+                <form id="eventForm" class="admin-form">
                     <!-- 基本信息 -->
                     <div class="admin-form-section">
                         <div class="admin-form-section-title">基本信息</div>
                         <div class="admin-form-row">
                             <div class="form-group">
                                 <label class="form-label">演出名称 <span style="color: #d32f2f;">*</span></label>
-                                <input type="text" class="form-input" placeholder="请输入演出名称" required>
+                                <input type="text" class="form-input" name="name" placeholder="请输入演出名称" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">演出类型 <span style="color: #d32f2f;">*</span></label>
-                                <select class="form-select" required>
+                                <select class="form-select" name="type" required>
                                     <option value="">请选择类型</option>
                                     <option value="concert">演唱会</option>
                                     <option value="theatre">话剧歌剧</option>
@@ -126,11 +126,11 @@
                         <div class="admin-form-row">
                             <div class="form-group">
                                 <label class="form-label">艺人/主办方 <span style="color: #d32f2f;">*</span></label>
-                                <input type="text" class="form-input" placeholder="请输入艺人或主办方名称" required>
+                                <input type="text" class="form-input" name="artist" placeholder="请输入艺人或主办方名称" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">城市 <span style="color: #d32f2f;">*</span></label>
-                                <select class="form-select" required>
+                                <select class="form-select" name="city" required>
                                     <option value="">请选择城市</option>
                                     <option value="shanghai">上海</option>
                                     <option value="beijing">北京</option>
@@ -146,14 +146,13 @@
                         <div class="admin-form-row">
                             <div class="form-group">
                                 <label class="form-label">默认场馆 <span style="color: #d32f2f;">*</span></label>
-                                <select class="form-select" required>
+                                <select class="form-select" name="venueId" required>
                                     <option value="">请选择场馆</option>
                                     <option value="1">国家体育场（鸟巢）</option>
                                     <option value="2">上海体育场</option>
                                     <option value="3">北京工人体育场</option>
                                     <option value="4">广州体育馆</option>
                                 </select>
-                                <input type="hidden" name="venue_id" value="">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">副标题</label>
@@ -201,35 +200,39 @@
                             <label class="form-label">票档列表 <span style="color: #d32f2f;">*</span></label>
                             <div class="text-small text-muted" style="margin-bottom: 12px;">添加不同价格的票档，每个票档对应不同的座位区域</div>
 
-                            <!-- 票档项模板 -->
-                            <div style="border: 1px solid #eee; border-radius: 4px; padding: 16px; margin-bottom: 12px; background: #fafafa;">
-                                <div class="admin-form-row">
-                                    <div class="form-group">
-                                        <label class="form-label">票档名称</label>
-                                        <input type="text" class="form-input" name="ticket_tiers[0].name" placeholder="如：VIP、一等座、二等座" required>
+                            <!-- 票档容器 -->
+                            <div id="ticketTiersContainer">
+                                <!-- 票档项模板 -->
+                                <div style="border: 1px solid #eee; border-radius: 4px; padding: 16px; margin-bottom: 12px; background: #fafafa;" id="tier_0">
+                                    <div class="admin-form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">票档名称</label>
+                                            <input type="text" class="form-input" name="ticket_tiers[0].name" placeholder="如：VIP、一等座、二等座" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">价格（元）<span style="color: #d32f2f;">*</span></label>
+                                            <input type="number" class="form-input" name="ticket_tiers[0].price" placeholder="请输入价格" min="0" step="0.01" required>
+                                        </div>
+                                    </div>
+                                    <div class="admin-form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">座位颜色</label>
+                                            <input type="color" class="form-input" name="ticket_tiers[0].color" value="#FF5722" style="height: 38px;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">每人限购</label>
+                                            <input type="number" class="form-input" name="ticket_tiers[0].maxPurchase" placeholder="每单最多购买数量" min="1" value="4">
+                                        </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">价格（元）<span style="color: #d32f2f;">*</span></label>
-                                        <input type="number" class="form-input" name="ticket_tiers[0].price" placeholder="请输入价格" min="0" step="0.01" required>
+                                        <label class="form-label">票档说明</label>
+                                        <input type="text" class="form-input" name="ticket_tiers[0].description" placeholder="如：含周边礼包、优先入场">
                                     </div>
-                                </div>
-                                <div class="admin-form-row">
-                                    <div class="form-group">
-                                        <label class="form-label">座位颜色</label>
-                                        <input type="color" class="form-input" name="ticket_tiers[0].color" value="#FF5722" style="height: 38px;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">每人限购</label>
-                                        <input type="number" class="form-input" name="ticket_tiers[0].max_purchase" placeholder="每单最多购买数量" min="1" value="4">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">票档说明</label>
-                                    <input type="text" class="form-input" name="ticket_tiers[0].description" placeholder="如：含周边礼包、优先入场">
+                                    <button type="button" class="btn btn-secondary btn-small" onclick="removeTicketTier(0)">删除此票档</button>
                                 </div>
                             </div>
 
-                            <button type="button" class="btn btn-secondary btn-small">+ 添加票档</button>
+                            <button type="button" class="btn btn-secondary btn-small" id="addTierBtn">+ 添加票档</button>
                         </div>
                     </div>
 
@@ -238,12 +241,12 @@
                         <div class="admin-form-section-title">演出详情</div>
                         <div class="form-group">
                             <label class="form-label">演出海报</label>
-                            <input type="url" class="form-input" name="cover_image" placeholder="请输入海报图片URL">
+                            <input type="url" class="form-input" name="coverImage" placeholder="请输入海报图片URL">
                             <div class="text-small text-muted" style="margin-top: 4px;">建议尺寸：800×1000px，大小不超过 5MB</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">演出图片</label>
-                            <input type="url" class="form-input" name="images[]" placeholder="请输入更多图片URL，用逗号分隔">
+                            <input type="url" class="form-input" name="images" placeholder="请输入更多图片URL，用逗号分隔">
                             <div class="text-small text-muted" style="margin-top: 4px;">多图URL用英文逗号分隔</div>
                         </div>
                         <div class="form-group">
@@ -253,11 +256,11 @@
                         <div class="admin-form-row">
                             <div class="form-group">
                                 <label class="form-label">温馨提示</label>
-                                <textarea class="form-textarea" name="metadata[tips]" placeholder="如：儿童入场提示、禁止携带物品等" rows="3"></textarea>
+                                <textarea class="form-textarea" name="tips" placeholder="如：儿童入场提示、禁止携带物品等" rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">购票须知</label>
-                                <textarea class="form-textarea" name="metadata[refund_policy]" placeholder="如：退换票政策、实名制要求等" rows="3"></textarea>
+                                <textarea class="form-textarea" name="refundPolicy" placeholder="如：退换票政策、实名制要求等" rows="3"></textarea>
                             </div>
                         </div>
                     </div>
@@ -297,14 +300,16 @@
 
                     <!-- 表单操作按钮 -->
                     <div class="admin-form-actions">
-                        <button type="button" class="btn btn-secondary">保存草稿</button>
-                        <button type="button" class="btn btn-secondary">预览</button>
-                        <button type="submit" class="btn btn-primary">发布演出</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">发布演出</button>
                     </div>
                 </form>
             </div>
         </main>
     </div>
 <script src="assets/js/auth-check.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/event-edit.js"></script>
 </body>
 </html>

@@ -75,6 +75,7 @@ function renderTable(events) {
 
     tbody.innerHTML = events.map(event => {
         const statusInfo = statusMap[event.status] || { text: event.status, class: 'badge-secondary' };
+        const actionButtons = renderActionButtons(event);
         return `
         <tr>
             <td>${event.id}</td>
@@ -87,9 +88,7 @@ function renderTable(events) {
             <td>${event.createdAt || event.createTime}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn action-btn-view" onclick="viewEvent(${event.id})">查看</button>
-                    <button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>
-                    <button class="action-btn action-btn-delete" onclick="deleteEvent(${event.id})">下架</button>
+                    ${actionButtons}
                 </div>
             </td>
         </tr>
@@ -97,6 +96,55 @@ function renderTable(events) {
     }).join('');
 
     document.getElementById('totalCount').textContent = `共 ${totalRecords} 条记录`;
+}
+
+/**
+ * 根据状态渲染操作按钮
+ */
+function renderActionButtons(event) {
+    const status = event.status;
+    let buttons = '';
+
+    // 查看按钮（所有状态都有）
+    buttons += `<button class="action-btn action-btn-view" onclick="viewEvent(${event.id})">查看</button>`;
+
+    switch (status) {
+        case 'draft':
+            // 草稿状态：发布、编辑、删除
+            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
+            buttons += `<button class="action-btn action-btn-confirm" onclick="changeEventStatus(${event.id}, 'on_sale')">发布</button>`;
+            buttons += `<button class="action-btn action-btn-delete" onclick="deleteEvent(${event.id})">删除</button>`;
+            break;
+
+        case 'on_sale':
+            // 上架状态：编辑、下架
+            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
+            buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">下架</button>`;
+            break;
+
+        case 'off_sale':
+            // 下架状态：编辑、上架
+            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
+            buttons += `<button class="action-btn action-btn-confirm" onclick="changeEventStatus(${event.id}, 'on_sale')">上架</button>`;
+            break;
+
+        case 'sold_out':
+            // 已售罄状态：只查看
+            break;
+
+        case 'coming_soon':
+            // 即将开售状态：编辑、取消开售
+            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
+            buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">取消开售</button>`;
+            break;
+
+        default:
+            // 默认：编辑、下架
+            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
+            buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">下架</button>`;
+    }
+
+    return buttons;
 }
 
 /**
@@ -199,24 +247,37 @@ function editEvent(id) {
 }
 
 /**
- * 下架演出
+ * 切换演出状态
  */
-async function deleteEvent(id) {
-    if (!confirm('确定要下架这个演出吗？')) return;
+async function changeEventStatus(id, newStatus) {
+    const statusText = {
+        'on_sale': '上架',
+        'off_sale': '下架',
+        'draft': '草稿'
+    };
+
+    if (!confirm(`确定要将演出${statusText[newStatus]}吗？`)) return;
 
     try {
-        // 调用下架接口
-        await put(`/api/admin/events/${id}/status`, { status: 'off_sale' });
-        alert('下架成功');
+        await put(`/api/admin/events/${id}/status`, { status: newStatus });
+        alert('操作成功');
         loadEvents();
     } catch (error) {
-        // 如果下架接口失败，尝试删除接口
-        try {
-            await del(`/api/admin/events/${id}`);
-            alert('删除成功');
-            loadEvents();
-        } catch (err) {
-            alert('操作失败: ' + err.msg);
-        }
+        alert('操作失败: ' + error.msg);
+    }
+}
+
+/**
+ * 删除演出
+ */
+async function deleteEvent(id) {
+    if (!confirm('确定要删除这个演出吗？删除后不可恢复！')) return;
+
+    try {
+        await del(`/api/admin/events/${id}`);
+        alert('删除成功');
+        loadEvents();
+    } catch (error) {
+        alert('删除失败: ' + error.msg);
     }
 }

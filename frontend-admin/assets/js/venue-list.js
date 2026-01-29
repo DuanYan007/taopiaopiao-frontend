@@ -30,10 +30,19 @@ async function loadVenues() {
 
         const result = await get('/api/admin/venues', params);
 
-        totalRecords = result.total;
+        // 调试：检查返回的数据结构
+        console.log('API返回数据:', result);
+
+        // 确保数据格式正确
+        const venueList = result.list || result.data || [];
+        totalRecords = result.total || result.count || venueList.length || 0;
         totalPages = Math.ceil(totalRecords / pageSize);
 
-        renderTable(result.list);
+        console.log('场馆列表:', venueList);
+        console.log('总记录数:', totalRecords);
+        console.log('总页数:', totalPages);
+
+        renderTable(venueList);
         renderPagination();
     } catch (error) {
         console.error('加载失败:', error);
@@ -79,15 +88,18 @@ function renderTable(venues) {
  * 渲染分页
  */
 function renderPagination() {
-    const start = (currentPage - 1) * pageSize + 1;
+    // 计算当前页的起始和结束
+    const start = totalRecords > 0 ? (currentPage - 1) * pageSize + 1 : 0;
     const end = Math.min(currentPage * pageSize, totalRecords);
 
+    // 更新分页信息
     document.getElementById('pageInfo').textContent =
         `显示 ${start}-${end} 条，共 ${totalRecords} 条`;
 
     const paginationContainer = document.getElementById('paginationBtns');
 
-    if (totalPages <= 1) {
+    // 如果没有数据或只有1页，不显示分页按钮
+    if (totalRecords === 0 || totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
     }
@@ -97,12 +109,15 @@ function renderPagination() {
     // 上一页
     buttons += `<button class="btn btn-secondary btn-small" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">上一页</button>`;
 
-    // 页码
+    // 页码按钮
     for (let i = 1; i <= totalPages; i++) {
+        // 显示：第一页、最后一页、当前页前后2页
         if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-            buttons += `<button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'} btn-small" onclick="goToPage(${i})">${i}</button>`;
+            const btnClass = i === currentPage ? 'btn-primary' : 'btn-secondary';
+            buttons += `<button class="btn ${btnClass} btn-small" onclick="goToPage(${i})">${i}</button>`;
         } else if (i === currentPage - 3 || i === currentPage + 3) {
-            buttons += `<span style="padding: 0 4px;">...</span>`;
+            // 显示省略号
+            buttons += `<span style="padding: 0 4px; color: #666;">...</span>`;
         }
     }
 
@@ -110,6 +125,8 @@ function renderPagination() {
     buttons += `<button class="btn btn-secondary btn-small" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">下一页</button>`;
 
     paginationContainer.innerHTML = buttons;
+
+    console.log('分页按钮已渲染，共', totalPages, '页');
 }
 
 /**

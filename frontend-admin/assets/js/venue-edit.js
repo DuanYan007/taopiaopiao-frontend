@@ -86,8 +86,6 @@ function disableForm() {
 async function handleFormSubmit(e) {
     e.preventDefault();
 
-    console.log('========== 表单提交开始 ==========');
-
     // 禁用提交按钮
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.textContent;
@@ -95,23 +93,14 @@ async function handleFormSubmit(e) {
     submitBtn.textContent = '保存中...';
 
     try {
-        console.log('开始收集表单数据...');
-
         // 收集表单数据
         const formData = new FormData(e.target);
-        console.log('FormData对象:', formData);
-
-        // 打印所有表单字段
-        for (let [key, value] of formData.entries()) {
-            console.log(`表单字段 [${key}]:`, value);
-        }
 
         // 收集设施标签
         const facilities = [];
         document.querySelectorAll('[name="facilities[]"]:checked').forEach(cb => {
             facilities.push(cb.value);
         });
-        console.log('设施标签:', facilities);
 
         // 构建完整的数据对象（所有字段都必须发送，即使为空）
         const data = {
@@ -127,37 +116,19 @@ async function handleFormSubmit(e) {
             facilities: facilities
         };
 
-        // 最终数据
-        console.log('最终提交的数据对象:', data);
-        console.log('数据JSON序列化:', JSON.stringify(data, null, 2));
-
         // 调用API
-        const apiUrl = venueId ? `/api/admin/venues/${venueId}` : '/api/admin/venues';
-        const apiMethod = venueId ? 'PUT' : 'POST';
-        console.log(`准备调用API: ${apiMethod} ${apiUrl}`);
-
         if (venueId) {
-            // 更新
-            console.log('执行更新操作...');
             await put(`/api/admin/venues/${venueId}`, data);
             alert('更新成功');
         } else {
-            // 创建
-            console.log('执行创建操作...');
             await post('/api/admin/venues', data);
             alert('创建成功');
         }
 
-        console.log('API调用成功，准备跳转...');
-
         // 返回列表页
         window.location.href = 'admin-venues.html';
     } catch (error) {
-        console.error('========== 表单提交异常 ==========');
-        console.error('错误对象:', error);
-        console.error('错误名称:', error.name);
-        console.error('错误消息:', error.message);
-        console.error('==================================');
+        console.error('保存失败:', error);
         alert('保存失败: ' + error.msg);
     } finally {
         submitBtn.disabled = false;

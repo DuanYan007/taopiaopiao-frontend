@@ -22,26 +22,12 @@ async function request(url, options = {}) {
     }
 
     try {
-        // 调试日志
-        console.log('========== API请求开始 ==========');
-        console.log('请求URL:', url);
-        console.log('请求方法:', options.method);
-        console.log('请求头:', headers);
-        console.log('请求体类型:', typeof options.body);
-        console.log('请求体内容:', options.body);
-
         const response = await fetch(url, {
             ...options,
             headers
         });
 
-        console.log('响应状态码:', response.status);
-        console.log('响应状态文本:', response.statusText);
-
         const result = await response.json();
-
-        console.log('响应数据:', result);
-        console.log('========== API请求结束 ==========');
 
         // 处理401 - Token无效或过期
         if (response.status === 401) {
@@ -63,15 +49,10 @@ async function request(url, options = {}) {
         return result.data;
 
     } catch (error) {
-        console.error('========== API请求异常 ==========');
-        console.error('错误类型:', error.name);
-        console.error('错误信息:', error.message);
-        console.error('错误堆栈:', error.stack);
-        console.error('==================================');
-
         if (error.message === '登录已过期') {
             throw error;
         }
+        console.error('API请求错误:', error);
         throw error;
     }
 }
@@ -95,14 +76,9 @@ function get(url, params = {}) {
  * @returns {Promise<any>} 响应数据
  */
 function post(url, data = {}) {
-    console.log('POST函数调用 - URL:', url);
-    console.log('POST函数调用 - 原始数据:', data);
-    const jsonString = JSON.stringify(data);
-    console.log('POST函数调用 - 序列化后JSON:', jsonString);
-
     return request(url, {
         method: 'POST',
-        body: jsonString
+        body: JSON.stringify(data)
     });
 }
 

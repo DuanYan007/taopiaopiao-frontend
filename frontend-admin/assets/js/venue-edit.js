@@ -102,16 +102,31 @@ async function handleFormSubmit(e) {
             address: formData.get('address').trim(),
             capacity: formData.get('capacity') ? parseInt(formData.get('capacity')) : null,
             latitude: formData.get('latitude') ? parseFloat(formData.get('latitude')) : null,
-            longitude: formData.get('longitude') ? parseFloat(formData.get('longitude')) : null,
-            images: formData.get('images').trim(),
-            description: formData.get('description').trim(),
-            facilities: []
+            longitude: formData.get('longitude') ? parseFloat(formData.get('longitude')) : null
         };
 
+        // 可选字段：只有当有值时才添加
+        const images = formData.get('images').trim();
+        if (images) {
+            data.images = images;
+        }
+
+        const description = formData.get('description').trim();
+        if (description) {
+            data.description = description;
+        }
+
         // 收集设施标签
+        const facilities = [];
         document.querySelectorAll('[name="facilities[]"]:checked').forEach(cb => {
-            data.facilities.push(cb.value);
+            facilities.push(cb.value);
         });
+        if (facilities.length > 0) {
+            data.facilities = facilities;
+        }
+
+        // 调试日志
+        console.log('提交的数据:', data);
 
         // 调用API
         if (venueId) {

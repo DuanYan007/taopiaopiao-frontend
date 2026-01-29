@@ -22,6 +22,15 @@ async function request(url, options = {}) {
     }
 
     try {
+        // 调试日志
+        console.log('Fetch请求配置:', {
+            url,
+            method: options.method,
+            headers,
+            bodyType: typeof options.body,
+            bodyValue: options.body
+        });
+
         const response = await fetch(url, {
             ...options,
             headers
@@ -76,9 +85,11 @@ function get(url, params = {}) {
  * @returns {Promise<any>} 响应数据
  */
 function post(url, data = {}) {
+    console.log('POST请求数据:', data);
+    console.log('序列化后:', JSON.stringify(data));
     return request(url, {
         method: 'POST',
-        body: data
+        body: JSON.stringify(data)
     });
 }
 
@@ -91,7 +102,7 @@ function post(url, data = {}) {
 function put(url, data = {}) {
     return request(url, {
         method: 'PUT',
-        body: data
+        body: JSON.stringify(data)
     });
 }
 

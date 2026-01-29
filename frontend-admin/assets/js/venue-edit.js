@@ -106,46 +106,26 @@ async function handleFormSubmit(e) {
             console.log(`表单字段 [${key}]:`, value);
         }
 
-        const data = {
-            name: formData.get('name').trim(),
-            city: formData.get('city'),
-            district: formData.get('district').trim(),
-            address: formData.get('address').trim(),
-            capacity: formData.get('capacity') ? parseInt(formData.get('capacity')) : null,
-            latitude: formData.get('latitude') ? parseFloat(formData.get('latitude')) : null,
-            longitude: formData.get('longitude') ? parseFloat(formData.get('longitude')) : null
-        };
-
-        console.log('基础数据:', data);
-
-        // 可选字段：只有当有值时才添加
-        const images = formData.get('images').trim();
-        if (images) {
-            data.images = images;
-            console.log('添加images字段:', images);
-        } else {
-            console.log('images字段为空，跳过');
-        }
-
-        const description = formData.get('description').trim();
-        if (description) {
-            data.description = description;
-            console.log('添加description字段:', description);
-        } else {
-            console.log('description字段为空，跳过');
-        }
-
         // 收集设施标签
         const facilities = [];
         document.querySelectorAll('[name="facilities[]"]:checked').forEach(cb => {
             facilities.push(cb.value);
         });
-        if (facilities.length > 0) {
-            data.facilities = facilities;
-            console.log('添加facilities字段:', facilities);
-        } else {
-            console.log('facilities字段为空，跳过');
-        }
+        console.log('设施标签:', facilities);
+
+        // 构建完整的数据对象（所有字段都必须发送，即使为空）
+        const data = {
+            name: formData.get('name').trim(),
+            city: formData.get('city').trim(),
+            district: formData.get('district').trim(),
+            address: formData.get('address').trim(),
+            capacity: formData.get('capacity') ? parseInt(formData.get('capacity')) : null,
+            latitude: formData.get('latitude') ? parseFloat(formData.get('latitude')) : null,
+            longitude: formData.get('longitude') ? parseFloat(formData.get('longitude')) : null,
+            images: formData.get('images').trim(),
+            description: formData.get('description').trim(),
+            facilities: facilities
+        };
 
         // 最终数据
         console.log('最终提交的数据对象:', data);

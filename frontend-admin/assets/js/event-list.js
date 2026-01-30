@@ -76,17 +76,29 @@ function renderTable(events) {
     tbody.innerHTML = events.map(event => {
         const statusInfo = statusMap[event.status] || { text: event.status, class: 'badge-secondary' };
         const actionButtons = renderActionButtons(event);
+
+        // 计算价格区间
+        let priceRange = '-';
+        if (event.ticketTiers && event.ticketTiers.length > 0) {
+            const prices = event.ticketTiers.map(tier => tier.price).filter(p => p != null);
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                priceRange = minPrice === maxPrice ? `¥${minPrice}` : `¥${minPrice} - ¥${maxPrice}`;
+            }
+        }
+
         return `
         <tr>
-            <td>${event.id}</td>
-            <td>${event.name}</td>
-            <td>${event.type}</td>
-            <td>${event.artist}</td>
-            <td>${event.city}</td>
-            <td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
-            <td>${event.priceRange || '-'}</td>
-            <td>${event.createdAt || event.createTime}</td>
-            <td>
+            <td class="col-id">${event.id}</td>
+            <td class="col-name">${event.name}</td>
+            <td class="col-type">${event.type}</td>
+            <td class="col-artist">${event.artist}</td>
+            <td class="col-city">${event.city}</td>
+            <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
+            <td class="col-price">${priceRange}</td>
+            <td class="col-time">${event.createdAt || event.createTime}</td>
+            <td class="col-action">
                 <div class="action-buttons">
                     ${actionButtons}
                 </div>

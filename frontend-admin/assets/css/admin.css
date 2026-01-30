@@ -198,7 +198,7 @@
 .admin-table th,
 .admin-table td {
     flex: 1;
-    padding: 16px 24px;
+    padding: 16px 12px;
     text-align: left;
     border-bottom: 1px solid #eee;
     vertical-align: middle;
@@ -210,9 +210,51 @@
     align-items: center;
 }
 
-/* 允许操作列的多行显示 */
-.admin-table td:last-child {
-    white-space: normal;
+/* 演出表格列宽设置 */
+.col-id {
+    flex: 0 0 60px;
+    justify-content: center;
+}
+
+.col-name {
+    flex: 2;
+    min-width: 150px;
+}
+
+.col-type {
+    flex: 0 0 100px;
+}
+
+.col-artist {
+    flex: 1.5;
+    min-width: 100px;
+}
+
+.col-city {
+    flex: 0 0 80px;
+}
+
+.col-status {
+    flex: 0 0 80px;
+}
+
+.col-price {
+    flex: 0 0 120px;
+}
+
+.col-time {
+    flex: 0 0 160px;
+}
+
+.col-action {
+    flex: 0 0 280px;
+    padding: 16px 8px;
+}
+
+/* 操作列样式调整 */
+.admin-table td.col-action,
+.admin-table th.col-action {
+    white-space: nowrap;
 }
 
 .admin-table th {
@@ -307,16 +349,18 @@
 /* 操作按钮组 */
 .action-buttons {
     display: flex;
-    gap: 8px;
+    gap: 4px;
+    flex-wrap: wrap;
 }
 
 .action-btn {
-    padding: 4px 12px;
+    padding: 4px 10px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     transition: all 0.3s;
+    white-space: nowrap;
 }
 
 .action-btn-view {
@@ -344,6 +388,15 @@
 
 .action-btn-delete:hover {
     background: #ffcdd2;
+}
+
+.action-btn-confirm {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.action-btn-confirm:hover {
+    background: #c8e6c9;
 }
 
 /* 仪表盘 */

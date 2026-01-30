@@ -178,6 +178,23 @@
     padding: 16px 24px;
     text-align: left;
     border-bottom: 1px solid #eee;
+    vertical-align: middle; /* 垂直居中对齐 */
+    min-height: 56px; /* 最小行高，确保一致性 */
+    max-width: 300px; /* 防止过宽导致布局问题 */
+    word-wrap: break-word; /* 长单词换行 */
+    word-break: break-all; /* 强制换行 */
+}
+
+/* 表格单元格文本溢出处理 */
+.admin-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 允许操作列的多行显示 */
+.admin-table td:last-child {
+    white-space: normal;
 }
 
 .admin-table th {
@@ -198,6 +215,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 56px; /* 固定最小高度，避免页面跳动 */
 }
 
 /* 表单样式 */

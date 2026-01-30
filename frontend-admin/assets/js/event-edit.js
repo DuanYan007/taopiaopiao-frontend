@@ -20,6 +20,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const title = document.querySelector('.admin-header-title');
     title.textContent = eventId ? (isReadonly ? '查看演出' : '编辑演出') : '新建演出';
 
+    // 加载场馆列表
+    await loadVenues();
+
     // 如果是只读模式，禁用表单
     if (isReadonly) {
         disableForm();
@@ -61,6 +64,40 @@ window.addEventListener('DOMContentLoaded', async () => {
         ticketTierIndex = existingTiers.length;
     }
 });
+
+/**
+ * 加载场馆列表
+ */
+async function loadVenues() {
+    try {
+        const venues = await get('/api/admin/venues');
+
+        // 获取场馆下拉框
+        const venueSelect = document.querySelector('[name="venueId"]');
+        if (!venueSelect) return;
+
+        // 保存当前选中的值（编辑模式）
+        const currentValue = venueSelect.value;
+
+        // 清空现有选项
+        venueSelect.innerHTML = '<option value="">请选择场馆</option>';
+
+        // 添加场馆选项
+        venues.forEach(venue => {
+            const option = document.createElement('option');
+            option.value = venue.id;
+            option.textContent = venue.name;
+            venueSelect.appendChild(option);
+        });
+
+        // 恢复选中的值
+        if (currentValue) {
+            venueSelect.value = currentValue;
+        }
+    } catch (error) {
+        console.error('加载场馆列表失败:', error);
+    }
+}
 
 /**
  * 加载演出数据

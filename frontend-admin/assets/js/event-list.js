@@ -232,19 +232,6 @@ document.getElementById('searchInput').addEventListener('keypress', (e) => {
 });
 
 /**
- * 筛选变化
- */
-document.getElementById('statusSelect').addEventListener('change', () => {
-    currentPage = 1;
-    loadEvents();
-});
-
-document.getElementById('typeSelect').addEventListener('change', () => {
-    currentPage = 1;
-    loadEvents();
-});
-
-/**
  * 查看演出
  */
 function viewEvent(id) {

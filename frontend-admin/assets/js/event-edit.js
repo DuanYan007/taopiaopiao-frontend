@@ -70,7 +70,13 @@ window.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadVenues() {
     try {
-        const venues = await get('/api/admin/venues');
+        const result = await get('/api/admin/venues');
+
+        // 处理返回的数据格式
+        // get() 已经提取了 data 字段，所以 result 可能是 {list: [...], total: ...} 或直接是数组
+        const venueList = result.list || result.data || result || [];
+
+        console.log('场馆列表数据:', venueList);
 
         // 获取场馆下拉框
         const venueSelect = document.querySelector('[name="venueId"]');
@@ -83,7 +89,7 @@ async function loadVenues() {
         venueSelect.innerHTML = '<option value="">请选择场馆</option>';
 
         // 添加场馆选项
-        venues.forEach(venue => {
+        venueList.forEach(venue => {
             const option = document.createElement('option');
             option.value = venue.id;
             option.textContent = venue.name;

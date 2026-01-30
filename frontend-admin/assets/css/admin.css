@@ -251,6 +251,22 @@
     padding: 16px 8px;
 }
 
+/* 场次表格列宽设置 */
+.col-session {
+    flex: 1.5;
+    min-width: 120px;
+}
+
+.col-venue {
+    flex: 1.5;
+    min-width: 120px;
+}
+
+.col-seats {
+    flex: 0 0 120px;
+    font-size: 12px;
+}
+
 /* 操作列样式调整 */
 .admin-table td.col-action,
 .admin-table th.col-action {

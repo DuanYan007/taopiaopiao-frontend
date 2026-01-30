@@ -149,6 +149,8 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-table-header {
@@ -174,12 +176,28 @@
     table-layout: fixed; /* 固定表格布局 */
 }
 
+.admin-table thead {
+    display: block;
+    width: 100%;
+    flex-shrink: 0;
+}
+
 .admin-table tbody {
-    /* 不限制tbody高度，让表格自然渲染 */
+    display: block;
+    width: 100%;
+    height: 600px; /* 固定高度：10行 × 60px/行 = 600px */
+    overflow-y: auto; /* 超出时显示滚动条 */
+    flex-shrink: 0;
+}
+
+.admin-table tr {
+    display: flex;
+    width: 100%;
 }
 
 .admin-table th,
 .admin-table td {
+    flex: 1;
     padding: 16px 24px;
     text-align: left;
     border-bottom: 1px solid #eee;
@@ -188,6 +206,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
 }
 
 /* 允许操作列的多行显示 */

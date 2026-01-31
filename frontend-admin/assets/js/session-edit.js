@@ -19,25 +19,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     eventId = params.get('eventId');
     isReadonly = params.get('readonly') === 'true';
 
-    // 验证必须有eventId
-    if (!eventId) {
-        alert('缺少演出ID参数');
-        window.location.href = 'admin-events.html';
-        return;
-    }
-
     // 修改标题
     const title = document.querySelector('.admin-header-title');
     title.textContent = sessionId ? (isReadonly ? '查看场次' : '编辑场次') : '新建场次';
 
-    // 设置隐藏字段
-    document.getElementById('eventId').value = eventId;
-
     // 加载场馆列表
     await loadVenues();
 
-    // 加载演出数据（用于显示票档）
-    await loadEventData();
+    // 加载演出列表（用于选择）
+    await loadEvents();
 
     // 如果是只读模式，禁用表单
     if (isReadonly) {
@@ -52,6 +42,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     } else {
         // 新建模式：初始化默认值
         initializeDefaultValues();
+
+        // 如果URL中有eventId，自动选择该演出
+        if (eventId) {
+            const eventSelect = document.getElementById('eventSelect');
+            if (eventSelect) {
+                eventSelect.value = eventId;
+                // 触发加载演出数据
+                await loadEventData();
+            }
+        }
     }
 
     // 绑定取消按钮
@@ -129,15 +129,68 @@ async function loadVenues() {
 }
 
 /**
+ * 加载演出列表
+ */
+async function loadEvents() {
+    try {
+        const result = await get('/api/admin/events', { pageSize: 1000 });
+        const eventList = result.list || result.data || [];
+
+        console.log('演出列表数据:', eventList);
+
+        const eventSelect = document.getElementById('eventSelect');
+        if (!eventSelect) return;
+
+        // 清空现有选项
+        eventSelect.innerHTML = '<option value="">请选择演出</option>';
+
+        // 添加演出选项
+        eventList.forEach(event => {
+            const option = document.createElement('option');
+            option.value = event.id;
+            option.textContent = event.name;
+            option.dataset.type = event.type || '';
+            option.dataset.city = event.city || '';
+            option.dataset.venue = event.venueName || '';
+            eventSelect.appendChild(option);
+        });
+
+        // 监听演出选择变更
+        eventSelect.addEventListener('change', async () => {
+            const selectedEventId = eventSelect.value;
+            if (selectedEventId) {
+                eventId = selectedEventId;
+                await loadEventData();
+            } else {
+                // 清空演出信息
+                document.getElementById('eventDetails').style.display = 'none';
+                document.getElementById('ticketTiersContainer').innerHTML =
+                    '<div class="text-center text-muted" style="padding: 40px;">请先选择演出</div>';
+            }
+        });
+    } catch (error) {
+        console.error('加载演出列表失败:', error);
+    }
+}
+
+/**
  * 加载演出数据
  */
 async function loadEventData() {
     try {
+        if (!eventId) {
+            console.warn('演出ID为空，跳过加载演出数据');
+            return;
+        }
+
         eventData = await get(`/api/admin/events/${eventId}`);
         console.log('演出数据:', eventData);
 
-        // 更新关联演出信息卡片
-        updateEventInfoCard(eventData);
+        // 设置隐藏字段
+        document.getElementById('eventId').value = eventId;
+
+        // 更新演出信息展示
+        updateEventInfoDisplay(eventData);
 
         // 渲染票档列表（继承自演出）
         if (eventData.ticketTiers && eventData.ticketTiers.length > 0) {
@@ -159,6 +212,22 @@ async function loadSessionData() {
     try {
         sessionData = await get(`/api/admin/sessions/${sessionId}`);
         console.log('场次数据:', sessionData);
+
+        // 设置演出ID
+        eventId = sessionData.eventId;
+        document.getElementById('eventId').value = eventId;
+
+        // 先加载演出列表
+        await loadEvents();
+
+        // 设置演出下拉框的值
+        const eventSelect = document.getElementById('eventSelect');
+        if (eventSelect) {
+            eventSelect.value = eventId;
+        }
+
+        // 加载演出数据
+        await loadEventData();
 
         // 回填基本信息
         setFormValue('sessionName', sessionData.sessionName);
@@ -223,27 +292,30 @@ async function loadSessionData() {
 }
 
 /**
- * 更新关联演出信息卡片
+ * 更新演出信息展示
  */
-function updateEventInfoCard(event) {
-    const cardElement = document.querySelector('.card');
-    if (!cardElement) return;
+function updateEventInfoDisplay(event) {
+    const eventDetails = document.getElementById('eventDetails');
+    const eventName = document.getElementById('eventName');
+    const eventInfo = document.getElementById('eventInfo');
 
-    cardElement.innerHTML = `
-        <div class="flex-between" style="align-items: flex-start;">
-            <div style="flex: 1;">
-                <div class="text-small text-muted" style="margin-bottom: 8px;">所属演出</div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${event.name}</div>
-                <div class="text-small" style="color: #666;">
-                    <span>${event.type}</span>
-                    <span style="margin: 0 8px; color: #ddd;">|</span>
-                    <span>${event.city}</span>
-                    <span style="margin: 0 8px; color: #ddd;">|</span>
-                    <span>${event.venueName || '-'}</span>
-                </div>
-            </div>
-            <a href="admin-event-edit.html?id=${event.id}" class="btn btn-outline btn-small" target="_blank">查看演出</a>
-        </div>
+    if (!eventDetails || !eventName || !eventInfo) return;
+
+    // 显示演出详情区域
+    eventDetails.style.display = 'block';
+
+    // 更新演出名称
+    eventName.textContent = event.name;
+
+    // 更新演出信息
+    eventInfo.innerHTML = `
+        <span>${event.type || '-'}</span>
+        <span style="margin: 0 8px; color: #ddd;">|</span>
+        <span>${event.city || '-'}</span>
+        <span style="margin: 0 8px; color: #ddd;">|</span>
+        <span>${event.venueName || '-'}</span>
+        <span style="margin: 0 8px; color: #ddd;">|</span>
+        <a href="admin-event-edit.html?id=${event.id}" target="_blank" style="color: #1976d2;">查看演出详情 →</a>
     `;
 }
 

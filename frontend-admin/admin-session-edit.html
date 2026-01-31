@@ -106,19 +106,18 @@
             <div class="admin-content">
                 <!-- 关联演出信息卡片 -->
                 <div class="card" style="margin-bottom: 24px; padding: 20px;">
-                    <div class="flex-between" style="align-items: flex-start;">
-                        <div style="flex: 1;">
-                            <div class="text-small text-muted" style="margin-bottom: 8px;">所属演出</div>
-                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">周杰伦2025嘉年华世界巡回演唱会-上海站</div>
-                            <div class="text-small" style="color: #666;">
-                                <span>演唱会</span>
-                                <span style="margin: 0 8px; color: #ddd;">|</span>
-                                <span>上海</span>
-                                <span style="margin: 0 8px; color: #ddd;">|</span>
-                                <span>国家体育场（鸟巢）</span>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-outline btn-small">更换演出</button>
+                    <div class="form-group">
+                        <label class="form-label">所属演出 <span style="color: #d32f2f;">*</span></label>
+                        <select class="form-select" id="eventSelect" required>
+                            <option value="">请选择演出</option>
+                        </select>
+                        <div class="text-small text-muted" style="margin-top: 4px;">选择演出后，系统将自动加载该演出的票档配置</div>
+                    </div>
+                    <!-- 演出详细信息展示区域（选择后显示） -->
+                    <div id="eventDetails" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                        <div class="text-small text-muted" style="margin-bottom: 8px;">演出信息</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;" id="eventName"></div>
+                        <div class="text-small" style="color: #666;" id="eventInfo"></div>
                     </div>
                 </div>
 

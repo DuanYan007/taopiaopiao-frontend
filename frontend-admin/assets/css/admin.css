@@ -199,7 +199,7 @@
 .admin-table td {
     flex: 1;
     padding: 16px 12px;
-    text-align: left;
+    text-align: center;
     border-bottom: 1px solid #eee;
     vertical-align: middle;
     height: 60px; /* 固定行高：每行60px */
@@ -208,6 +208,7 @@
     white-space: nowrap;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 /* 演出表格列宽设置 */

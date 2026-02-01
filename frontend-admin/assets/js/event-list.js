@@ -14,8 +14,17 @@ const statusMap = {
     'draft': { text: '草稿', class: 'badge-secondary' },
     'on_sale': { text: '上架', class: 'badge-success' },
     'off_sale': { text: '下架', class: 'badge-danger' },
-    'sold_out': { text: '已售罄', class: 'badge-dark' },
-    'coming_soon': { text: '即将开售', class: 'badge-warning' }
+    'sold_out': { text: '已售罄', class: 'badge-dark' }
+};
+
+// 类型映射
+const typeMap = {
+    'concert': '演唱会',
+    'theatre': '话剧歌剧',
+    'dance': '舞蹈芭蕾',
+    'exhibition': '展览休闲',
+    'sports': '体育',
+    'kids': '儿童亲子'
 };
 
 // 页面加载时获取列表
@@ -75,6 +84,7 @@ function renderTable(events) {
 
     tbody.innerHTML = events.map(event => {
         const statusInfo = statusMap[event.status] || { text: event.status, class: 'badge-secondary' };
+        const typeText = typeMap[event.type] || event.type;
         const actionButtons = renderActionButtons(event);
 
         // 计算价格区间
@@ -92,7 +102,7 @@ function renderTable(events) {
         <tr>
             <td class="col-id">${event.id}</td>
             <td class="col-name">${event.name}</td>
-            <td class="col-type">${event.type}</td>
+            <td class="col-type">${typeText}</td>
             <td class="col-artist">${event.artist}</td>
             <td class="col-city">${event.city}</td>
             <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>

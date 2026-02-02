@@ -213,17 +213,17 @@
 
 /* 演出表格列宽设置 */
 .col-id {
-    flex: 0 0 60px;
+    flex: 0 0 50px;
     justify-content: center;
 }
 
 .col-name {
-    flex: 2;
-    min-width: 150px;
+    flex: 3;
+    min-width: 200px;
 }
 
 .col-type {
-    flex: 0 0 100px;
+    flex: 0 0 90px;
 }
 
 .col-artist {
@@ -232,11 +232,11 @@
 }
 
 .col-city {
-    flex: 0 0 60px;
+    flex: 0 0 50px;
 }
 
 .col-status {
-    flex: 0 0 70px;
+    flex: 0 0 65px;
 }
 
 .col-price {

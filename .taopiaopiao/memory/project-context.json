@@ -1,365 +1,106 @@
 {
-  "project_name": "taopiaopiao",
-  "current_phase": "backend-design",
+  "project_name": "淘票票票务系统",
+  "current_phase": "frontend-admin开发",
   "tech_stack": {
-    "frontend": ["HTML", "CSS", "JavaScript (待选型)"],
-    "backend": ["待选型", "RESTful API"],
-    "database": ["MySQL / PostgreSQL"],
-    "design": ["响应式设计", "卡片布局", "组件化样式"]
+    "frontend": "HTML5 + CSS3 + 原生JavaScript",
+    "backend": "待对接 (RESTful API)",
+    "database": "MySQL",
+    "deploy": "Nginx本地开发环境"
   },
-  "completed_features": [
-    {
-      "name": "前端静态页面原型",
-      "files": [
-        "frontend/assets/css/common.css",
-        "frontend/assets/css/client.css",
-        "frontend/assets/css/admin.css",
-        "frontend/index.html",
-        "frontend/event-detail.html",
-        "frontend/session-list.html",
-        "frontend/seat-selection.html",
-        "frontend/ticket-tier-selection.html",
-        "frontend/reservation-result.html",
-        "frontend/order-confirm.html",
-        "frontend/order-center.html",
-        "frontend/order-detail.html",
-        "frontend/login.html",
-        "frontend/profile.html",
-        "frontend/favorites.html",
-        "frontend/notifications.html",
-        "frontend/help-center.html",
-        "frontend/ai-qa.html",
-        "frontend/ai-subscription.html",
-        "frontend/admin/admin-login.html",
-        "frontend/admin/admin-index.html",
-        "frontend/admin/admin-events.html",
-        "frontend/admin/admin-event-edit.html",
-        "frontend/admin/admin-sessions.html",
-        "frontend/admin/admin-session-edit.html",
-        "frontend/admin/admin-orders.html",
-        "frontend/admin/admin-knowledge.html",
-        "frontend/admin/admin-knowledge-edit.html",
-        "frontend/admin/admin-templates.html",
-        "frontend/admin/admin-template-edit.html",
-        "frontend/admin/admin-ai-analytics.html"
-      ],
-      "key_points": [
-        "纯HTML+CSS实现，无JavaScript",
-        "完整的C端用户流程：首页→详情→场次→选座→订单→支付",
-        "包含AI助手问答和订阅推送功能页面",
-        "Admin端包含演出管理、订单管理、AI知识库等核心功能",
-        "响应式设计，支持移动端",
-        "所有数据为模拟数据，真实拟态"
-      ],
-      "timestamp": "2025-01-25"
+  "project_structure": {
+    "frontend-admin": "管理后台前端 (主要开发目录)",
+    "database": "数据库DDL文件",
+    "docs": "设计文档和接口规范"
+  },
+  "admin_pages": {
+    "已实现列表页面": [
+      "admin-events.html (演出管理) - event-list.js",
+      "admin-sessions.html (场次管理) - session-list.js",
+      "admin-venues.html (场馆管理) - venue-list.js"
+    ],
+    "已实现编辑页面": [
+      "admin-event-edit.html (演出编辑) - event-edit.js",
+      "admin-session-edit.html (场次编辑) - session-edit.js",
+      "admin-venue-edit.html (场馆编辑) - venue-edit.js"
+    ],
+    "待实现页面": [
+      "admin-orders.html (订单管理)",
+      "admin-seats.html (座位管理)",
+      "AI功能模块页面"
+    ]
+  },
+  "core_modules": {
+    "assets/js/auth.js": "JWT认证管理 - Token存储、获取、清除",
+    "assets/js/auth-check.js": "页面登录检查 - 自动跳转未登录用户",
+    "assets/js/api.js": "统一API请求封装 - 自动携带Token、处理401/403"
+  },
+  "data_models": {
+    "events": {
+      "fields": "id, name, type, artist, city, venueId, coverImage, description, ticketTiers[], status, tags[], saleStartTime, saleEndTime",
+      "status_enum": "draft, on_sale, off_sale, sold_out",
+      "type_enum": "concert, theatre, dance, exhibition, sports, kids"
     },
-    {
-      "name": "演出场次模块反向建模",
-      "files": [
-        "docs/reverse-modeling-events-sessions.md"
-      ],
-      "key_points": [
-        "基于admin-events.html和admin-sessions.html两个前端页面进行反向推导",
-        "设计了5个核心业务实体：Event(演出)、Session(场次)、TicketTier(票档)、Venue(场馆)、Seat(座位)",
-        "设计了5个数据库表，包含完整字段定义、索引、外键关系",
-        "设计了20+个RESTful API接口，覆盖CRUD、筛选、统计、批量操作",
-        "定义了状态机规则、数据约束、价格逻辑等业务规则",
-        "提供了metadata扩展字段设计，预留未来扩展空间",
-        "包含了技术实现建议：数据库优化、并发控制、API性能优化"
-      ],
-      "timestamp": "2025-01-26"
+    "sessions": {
+      "fields": "id, eventId, sessionName, startTime, endTime, venueId, hallName, totalSeats, availableSeats, soldSeats, ticketTierConfig[], status, metadata",
+      "status_enum": "not_started, on_sale, sold_out, ended, off_sale",
+      "inheritance": "票档继承自events的ticketTiers"
     },
-    {
-      "name": "演出创建表单与数据库字段对齐",
-      "files": [
-        "frontend-admin/admin-event-edit.html",
-        "docs/reverse-modeling-events-sessions.md",
-        "docs/event-form-database-mapping.md"
-      ],
-      "key_points": [
-        "修改admin-event-edit.html表单，确保所有字段name属性与数据库字段一致",
-        "移除了不合理的字段（演出开始时间/结束时间，这些应在sessions表）",
-        "场馆改为下拉选择器，关联venue_id外键",
-        "票档使用ticket_tiers[n].field格式，对应ticket_tiers表",
-        "扩展字段（温馨提示、购票须知）使用metadata[field]格式存储",
-        "演出类型ENUM增加了dance（舞蹈芭蕾）选项",
-        "状态值改为数据库枚举值：draft/on_sale/off_sale/sold_out",
-        "标签使用tags[]数组，值为推荐/热门/即将开售",
-        "创建了完整的字段映射文档event-form-database-mapping.md",
-        "提供了前端JavaScript处理示例和后端数据处理流程"
-      ],
-      "timestamp": "2025-01-26"
-    },
-    {
-      "name": "前端与SpringBoot后端接口对接方案",
-      "files": [
-        "docs/frontend-api-integration-guide.md"
-      ],
-      "key_points": [
-        "从纯前端视角提供JWT登录认证的接口对接方案",
-        "明确了前端需要实现的逻辑：登录表单提交、Token存储、API请求携带Token、401错误处理",
-        "定义了登录接口规范：POST /api/admin/auth/login，返回 { code, data: { token, userInfo } }",
-        "提供了完整的登录页面HTML代码示例（删除验证码，添加登录逻辑）",
-        "说明了Token存储策略：sessionStorage（默认）和localStorage（记住我）",
-        "提供了统一API请求封装示例，自动处理Token和401跳转",
-        "明确了后端需要配合实现的内容：登录接口、JWT拦截器、CORS配置、统一响应格式",
-        "列出了完整的API接口清单和错误码约定",
-        "提供了测试用例和常见问题解答"
-      ],
-      "timestamp": "2025-01-27"
-    },
-    {
-      "name": "JWT Token有效期管理方案(后端实现)",
-      "files": [
-        "docs/backend-jwt-token-management.md"
-      ],
-      "key_points": [
-        "明确了Token有效性定义：Token有效 = (JWT未过期) AND (Token不在黑名单中)",
-        "采用JWT + Token黑名单混合方案：JWT自动过期机制 + 登出主动失效",
-        "JWT包含关键Claims：sub(用户ID)、username(用户名)、jti(唯一Token ID)、iat(签发时间)、exp(过期时间24小时)",
-        "登出时将Token的jti加入Redis黑名单，设置TTL为Token剩余有效期，实现自动清理",
-        "后端拦截器验证流程：解析JWT → 检查exp过期 → 查询Redis黑名单 → 验证通过放行",
-        "提供了完整的SpringBoot实现代码：JwtTokenUtil工具类、登录接口、登出接口、拦截器配置",
-        "Token失效场景：JWT过期(自动)、用户登出(黑名单)、密码修改(可选)、强制下线(可选)",
-        "使用Redis存储黑名单的优势：高性能、自动TTL过期、减少数据库压力",
-        "提供了完整的测试用例和安全建议：BCrypt密码加密、HTTPS传输、防暴力破解",
-        "包含实施清单：必须实现和可选实现的功能点"
-      ],
-      "timestamp": "2025-01-27"
-    },
-    {
-      "name": "前端Token有效期管理方案",
-      "files": [
-        "docs/frontend-token-lifecycle-management.md"
-      ],
-      "key_points": [
-        "从纯前端视角说明Token的生命周期管理，不涉及后端实现细节",
-        "前端核心原则：只存储不验证、统一处理401、被动登出、主动登出、简单可靠",
-        "Token存储策略：sessionStorage(默认，关闭浏览器清除) + localStorage(记住我，持久化)",
-        "前端判断Token有效性的唯一方式：通过后端API响应，401表示Token无效，200表示有效",
-        "前端不需要做的事情：不解析JWT验证过期、不实现Token黑名单、不计算Token剩余时间",
-        "提供了完整的auth.js和api.js代码示例：Token存储、获取、清除、登出等功能",
-        "统一API请求封装：自动携带Token、统一处理401(清除Token并跳转登录页)、处理403权限不足",
-        "登出流程：调用后端logout接口(通知后端加入黑名单) + 清除本地Token + 跳转登录页",
-        "页面加载检查：检查Token是否存在(不能验证有效性)，存在则发起API请求，401自动跳转登录页",
-        "常见问题解答：为什么不在前端解析JWT、为什么不需要定时刷新、如何多标签页同步登录状态等"
-      ],
-      "timestamp": "2025-01-27"
-    },
-    {
-      "name": "管理端前端Token管理实现",
-      "files": [
-        "frontend-admin/assets/js/auth.js",
-        "frontend-admin/assets/js/api.js",
-        "frontend-admin/admin-login.html",
-        "frontend-admin/admin-index.html",
-        "docs/backend-api-specification.md"
-      ],
-      "key_points": [
-        "创建了auth.js认证模块：getToken、saveToken、getUserInfo、isAuthenticated、clearToken、logout等函数",
-        "创建了api.js请求封装：request、get、post、put、del函数，自动处理401和403错误",
-        "修改了admin-login.html：删除验证码组件，添加表单提交逻辑，调用登录接口，存储Token",
-        "修改了admin-index.html：添加登录状态检查、显示用户信息、绑定登出按钮",
-        "创建了后端接口规范文档backend-api-specification.md：包含登录/登出接口、JWT规范、拦截器要求、错误码定义、CORS配置、数据库设计、安全要求、测试用例",
-        "登录流程：用户输入账号密码 → POST /api/admin/auth/login → 接收{token, userInfo} → 存储Token → 跳转管理后台",
-        "登出流程：点击登出按钮 → POST /api/admin/auth/logout → 清除本地Token → 跳转登录页",
-        "Token过期处理：任何API请求返回401 → 自动清除Token → 跳转登录页",
-        "后端需要实现的接口：登录、登出、JWT生成验证、Token黑名单、拦截器、CORS配置",
-        "提供了完整的测试用例和实施清单供后端开发者参考"
-      ],
-      "timestamp": "2025-01-27"
+    "venues": {
+      "fields": "id, name, city, district, address, capacity, latitude, longitude, images[], description, facilities[]"
     }
+  },
+  "key_features": {
+    "票档继承模式": "场次继承演出票档,可自定义价格覆盖演出价格",
+    "状态机管理": "draft→on_sale→sold_out/ended, 支持off_sale暂停",
+    "分页查询": "所有列表页支持分页(默认10条/页)",
+    "智能搜索": "关键词搜索 + 下拉框筛选",
+    "权限控制": "基于JWT Token的API认证"
+  },
+  "api_conventions": {
+    "base_url": "/api/admin",
+    "headers": "Authorization: Bearer {token}",
+    "response_format": "{ code, msg, data, timestamp, success }",
+    "error_handling": "401自动跳转登录页, 403提示权限不足"
+  },
+  "design_decisions": {
+    "表格布局": "Flexbox固定布局,表头tbody固定高度600px可滚动",
+    "列宽控制": "使用CSS类 .col-name, .col-city 等精确控制",
+    "状态显示": "徽章badge + 颜色区分(success/danger/secondary等)",
+    "表单提交": "FormData收集, 数组用ticket_tiers[].field格式",
+    "扩展字段": "使用metadata JSON字段存储业务扩展配置"
+  },
+  "css_patterns": {
+    "admin.css": "管理后台通用样式 - flex布局、卡片、表格、表单",
+    "common.css": "全局样式 - 按钮、徽章、工具类",
+    "表格类": ".admin-table, .admin-table-header, .admin-table-footer",
+    "表单类": ".admin-form, .admin-form-section, .form-group"
+  },
+  "recent_changes": [
+    "2025-02-02: 演出列表页优化 - 缩减城市/状态列宽,增加演出名称列宽",
+    "2025-02-02: 添加类型映射 - typeMap将英文类型转换为中文显示",
+    "2025-02-02: 场馆编辑页 - 容纳人数改为必填字段",
+    "2025-02-02: 侧边栏调整 - 场馆管理移至数据概览和演出管理之间",
+    "2025-02-01: 场次管理 - 完成列表页和编辑页前端逻辑"
   ],
-  "decisions": [
-    {
-      "topic": "前端技术选型",
-      "choice": "纯HTML + CSS（静态页面）",
-      "reason": "根据frontend.md要求，仅使用HTML+CSS，不使用JavaScript，用于产品展示与演示",
-      "timestamp": "2025-01-25"
-    },
-    {
-      "topic": "设计风格",
-      "choice": "现代互联网SaaS风格",
-      "reason": "采用白/灰/蓝色调，卡片布局，符合主流票务平台（如大麦网）的设计风格",
-      "timestamp": "2025-01-25"
-    },
-    {
-      "topic": "页面组织",
-      "choice": "分为C端和Admin端",
-      "reason": "C端面向普通用户，Admin端面向管理员，功能分离清晰",
-      "timestamp": "2025-01-25"
-    },
-    {
-      "topic": "数据库设计方法",
-      "choice": "从前端HTML反向推导数据模型",
-      "reason": "基于已存在的前端原型页面，分析其中的业务元素（搜索框、筛选器、列表字段、操作按钮）来推导合理的数据库表结构和API接口设计",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "topic": "实体关系设计",
-      "choice": "Event(演出)与Session(场次)采用1:N关系",
-      "reason": "一个演出可以有多个场次（不同时间），但每个场次只属于一个演出。这种设计支持同一演出在不同日期、不同场馆的场次安排",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "topic": "扩展性设计",
-      "choice": "在关键表中增加metadata字段（JSON类型）",
-      "reason": "预留下未来扩展空间，避免频繁修改表结构。metadata可存储业务特定的配置、自定义属性等",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "topic": "认证方案选型",
-      "choice": "JWT Token认证 (SpringBoot后端实现)",
-      "reason": "后端使用SpringBoot,由后端同事实现JWT生成和验证拦截器,前端只需负责Token存储和携带",
-      "timestamp": "2025-01-27"
-    },
-    {
-      "topic": "前后端分工",
-      "choice": "后端负责JWT实现,前端负责接口对接",
-      "reason": "遵循职责分离原则,后端处理安全逻辑(Token生成、验证、拦截器),前端处理UI逻辑(表单提交、Token存储、页面跳转)",
-      "timestamp": "2025-01-27"
-    },
-    {
-      "topic": "接口文档优先",
-      "choice": "先定义接口规范,再各自实现",
-      "reason": "前后端并行开发,通过接口文档约定数据格式,避免互相等待",
-      "timestamp": "2025-01-27"
-    },
-    {
-      "topic": "Token有效期管理方案",
-      "choice": "JWT过期 + Redis黑名单",
-      "reason": "JWT的exp claim实现自动过期(24小时),登出时将Token的jti加入Redis黑名单实现主动失效,Redis的TTL机制自动清理过期记录",
-      "timestamp": "2025-01-27"
-    },
-    {
-      "topic": "JWT唯一标识jti",
-      "choice": "每个Token包含唯一的jti claim",
-      "reason": "用于Token黑名单的唯一标识,支持精确控制单个Token的失效,而不影响用户的其他设备登录",
-      "timestamp": "2025-01-27"
-    }
+  "todo_backend": [
+    "实现所有CRUD接口 (events, sessions, venues, orders)",
+    "JWT认证中间件 - Token生成、验证、黑名单",
+    "票档继承逻辑 -场次继承演出票档配置",
+    "状态流转控制 - 业务规则验证",
+    "删除限制检查 - 有订单的数据不可删除"
   ],
-  "errors_solved": [
-    {
-      "error": "admin-event-edit.html 页面缺失",
-      "solution": "创建了演出编辑页面，包含完整的表单结构：基本信息、时间信息、票档设置、演出详情、购票设置、状态设置等6个模块",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "error": "admin-session-edit.html 页面缺失",
-      "solution": "创建了场次编辑页面，突出场次与演出的关联关系（顶部显示所属演出卡片），包含：场次基本信息、座位设置、票档配置、销售设置、状态设置等5个模块。票档支持颜色标识和详细配置",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "error": "AI功能模块的编辑页面缺失",
-      "solution": "创建了两个AI功能编辑页面：1) admin-knowledge-edit.html（知识库管理）：包含基本信息、答案内容、AI配置（关键词、相似问题、优先级）、状态设置、AI对话预览等模块；2) admin-template-edit.html（推送模板）：包含基本信息、多渠道推送内容（APP、短信、微信）、变量说明、触发条件、推送对象、实时预览等模块。支持变量插值和多渠道推送",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "error": "缺少真实开发的前端目录",
-      "solution": "将产品原型(frontend-exp)复制到新的frontend目录，并清理所有模拟数据。创建frontend/README.md开发指南。index.html已清理完成，移除所有硬编码的演出数据，添加加载状态和空状态提示。CSS添加了loading-spinner和empty-state样式",
-      "timestamp": "2025-01-26"
-    },
-    {
-      "error": "缺少本地开发环境部署方案",
-      "solution": "创建了完整的Nginx本地部署方案：1) 3个nginx配置文件（完整版/简化版/开发版）支持静态资源服务和API反向代理；2) Windows和Linux/Mac启动脚本；3) API配置文件封装（config.js + api-example.js）；4) 完整的快速开始指南和故障排除方案。C端8080端口，Admin端8081端口，API自动转发到后端3000端口",
-      "timestamp": "2025-01-26"
-    }
+  "todo_frontend": [
+    "订单管理列表和详情页",
+    "座位管理页面",
+    "AI功能模块页面实现",
+    "统一Toast提示组件",
+    "批量操作功能"
   ],
-  "patterns": [
-    {
-      "name": "页面布局模式",
-      "usage": "所有页面使用统一的布局结构",
-      "template": "顶部导航 + 主内容区 + 页脚"
-    },
-    {
-      "name": "卡片组件",
-      "usage": "用于展示演出、订单、统计等信息",
-      "template": ".card { background: white; border-radius: 8px; box-shadow: ... }"
-    },
-    {
-      "name": "表格组件",
-      "usage": "Admin端数据列表展示",
-      "template": ".admin-table { ... }"
-    },
-    {
-      "name": "按钮样式",
-      "usage": "统一的按钮风格",
-      "template": ".btn, .btn-primary, .btn-secondary, .btn-outline"
-    },
-    {
-      "name": "加载状态",
-      "usage": "数据加载时的等待提示",
-      "template": ".loading-state + .loading-spinner"
-    },
-    {
-      "name": "空状态",
-      "usage": "无数据时的友好提示",
-      "template": ".empty-state + .empty-state-icon"
-    },
-    {
-      "name": "API代理配置",
-      "usage": "Nginx反向代理配置",
-      "template": "location /api/ { proxy_pass http://backend; }"
-    },
-    {
-      "name": "API请求封装",
-      "usage": "统一的fetch封装",
-      "template": "async function request(url, options) { ... }"
-    },
-    {
-      "name": "数据表设计模式",
-      "usage": "所有业务表统一的基础字段",
-      "template": "id (PK) + created_at + updated_at + metadata (JSON)"
-    },
-    {
-      "name": "状态枚举设计",
-      "usage": "业务状态的数据库存储",
-      "template": "使用ENUM类型存储状态，如：draft/on_sale/off_sale/sold_out"
-    },
-    {
-      "name": "RESTful API命名",
-      "usage": "API路径设计规范",
-      "template": "GET /api/resources (列表), POST /api/resources (创建), GET /api/resources/{id} (详情), PUT /api/resources/{id} (更新), DELETE /api/resources/{id} (删除)"
-    },
-    {
-      "name": "API响应格式",
-      "usage": "统一的后端API响应结构",
-      "template": "{ code: 0, message: \"success\", data: {...} }"
-    },
-    {
-      "name": "分页查询模式",
-      "usage": "列表API支持分页",
-      "template": "Query参数：page, page_size, 响应：{ total, page, page_size, items }"
-    },
-    {
-      "name": "外键关系设计",
-      "usage": "表关联的数据库实现",
-      "template": "FOREIGN KEY (column_name) REFERENCES related_table(id)"
-    },
-    {
-      "name": "JWT认证流程",
-      "usage": "用户登录认证",
-      "template": "前端收集用户名密码 → POST /api/auth/login → 后端验证并生成JWT Token → 前端存储Token → 所有API请求携带Authorization: Bearer {token} → 后端拦截器验证Token → 返回数据或401"
-    },
-    {
-      "name": "Token存储策略",
-      "usage": "客户端Token持久化",
-      "template": "sessionStorage存储（默认） + localStorage存储（记住登录状态）"
-    },
-    {
-      "name": "API请求拦截器",
-      "usage": "统一处理API请求和响应",
-      "template": "request(url, options) → 自动添加Token → 处理401跳转登录 → 处理403权限不足 → 统一错误处理"
-    },
-    {
-      "name": "登录状态检查",
-      "usage": "页面加载时验证用户是否登录",
-      "template": "window.addEventListener('DOMContentLoaded', () => { if (!isAuthenticated()) window.location.href = 'admin-login.html'; })"
-    },
-    {
-      "name": "权限控制RBAC",
-      "usage": "基于角色的访问控制",
-      "template": "用户表包含role和permissions字段，JWT Token包含用户权限信息，后端拦截器验证用户权限"
-    }
-  ]
+  "important_notes": {
+    "数据格式": "时间使用ISO 8601格式,价格使用number类型",
+    "表单命名": "使用snake_case命名与数据库一致(如ticket_tiers[0].name)",
+    "只读模式": "查看页通过readonly=true参数实现,禁用所有input",
+    "分页参数": "page, pageSize, 返回total字段用于计算总页数",
+    "状态映射": "前端维护statusMap/typeMap对象用于显示转换"
+  }
 }

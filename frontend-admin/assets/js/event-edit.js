@@ -121,8 +121,8 @@ async function loadEventData() {
         setFormValue('subtitle', event.subtitle);
 
         // 回填时间信息
-        setFormValue('eventStartDate', event.eventStartDate);
-        setFormValue('eventEndDate', event.eventEndDate);
+        setFormValue('eventStartDate', formatDate(event.eventStartDate));
+        setFormValue('eventEndDate', formatDate(event.eventEndDate));
         setFormValue('duration', event.duration);
 
         // 回填预售时间
@@ -363,4 +363,33 @@ function formatDateTimeLocal(dateString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+/**
+ * 辅助函数：格式化日期为 date 类型输入框格式 (YYYY-MM-DD)
+ * 处理后端返回的各种时间格式（ISO 8601、时间戳等）
+ */
+function formatDate(dateString) {
+    if (!dateString) return '';
+
+    let date;
+    // 处理时间戳（毫秒）
+    if (typeof dateString === 'number') {
+        date = new Date(dateString);
+    }
+    // 处理 ISO 8601 字符串
+    else {
+        date = new Date(dateString);
+    }
+
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+        console.warn('无效的日期格式:', dateString);
+        return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }

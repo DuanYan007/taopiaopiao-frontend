@@ -13,7 +13,7 @@ let totalPages = 0;
 const statusMap = {
     'draft': { text: '草稿', class: 'badge-secondary' },
     'on_sale': { text: '上架', class: 'badge-success' },
-    'off_sale': { text: '下架', class: 'badge-danger' },
+    'off_sale': { text: '已售完', class: 'badge-danger' },
     'sold_out': { text: '已售罄', class: 'badge-dark' }
 };
 
@@ -24,7 +24,8 @@ const typeMap = {
     'dance': '舞蹈芭蕾',
     'exhibition': '展览休闲',
     'sports': '体育',
-    'kids': '儿童亲子'
+    'kids': '儿童亲子',
+    'music': '音乐'
 };
 
 // 页面加载时获取列表
@@ -261,7 +262,7 @@ function editEvent(id) {
 async function changeEventStatus(id, newStatus) {
     const statusText = {
         'on_sale': '上架',
-        'off_sale': '下架',
+        'off_sale': '已售完',
         'draft': '草稿'
     };
 

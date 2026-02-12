@@ -16,7 +16,7 @@ const statusMap = {
     'on_sale': { text: '销售中', class: 'badge-success' },
     'sold_out': { text: '已售罄', class: 'badge-gray' },
     'ended': { text: '已结束', class: 'badge-dark' },
-    'off_sale': { text: '已下架', class: 'badge-danger' }
+    'off_sale': { text: '已售完', class: 'badge-danger' }
 };
 
 // 页面加载时获取列表

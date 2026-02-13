@@ -129,14 +129,13 @@ function renderTable(sessions) {
     const tbody = document.getElementById('sessionTableBody');
 
     if (!sessions || sessions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>';
         return;
     }
 
     tbody.innerHTML = sessions.map(session => {
         const statusInfo = statusMap[session.status] || { text: session.status, class: 'badge-secondary' };
         const actionButtons = renderActionButtons(session);
-        const priceRange = calculatePriceRange(session);
         const seatInfo = renderSeatInfo(session);
 
         // 格式化时间
@@ -157,7 +156,6 @@ function renderTable(sessions) {
                 <div>${session.venueName || '-'}</div>
                 <div class="text-small text-muted">${session.hallName || ''}</div>
             </td>
-            <td class="col-price"><span class="price">${priceRange}</span></td>
             <td class="col-seats">${seatInfo}</td>
             <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
             <td class="col-action">
@@ -170,26 +168,6 @@ function renderTable(sessions) {
     }).join('');
 
     document.getElementById('totalCount').textContent = `共 ${totalRecords} 条记录`;
-}
-
-/**
- * 计算票价范围
- */
-function calculatePriceRange(session) {
-    if (!session.ticketTiers || session.ticketTiers.length === 0) {
-        return '-';
-    }
-
-    const prices = session.ticketTiers
-        .map(tier => tier.overridePrice || tier.price)
-        .filter(p => p != null);
-
-    if (prices.length === 0) return '-';
-
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-
-    return minPrice === maxPrice ? `¥${minPrice}` : `¥${minPrice} - ¥${maxPrice}`;
 }
 
 /**

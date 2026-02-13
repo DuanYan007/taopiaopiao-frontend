@@ -176,11 +176,11 @@ function renderTable(sessions) {
  * 计算票价范围
  */
 function calculatePriceRange(session) {
-    if (!session.ticketTierConfig || session.ticketTierConfig.length === 0) {
+    if (!session.ticketTiers || session.ticketTiers.length === 0) {
         return '-';
     }
 
-    const prices = session.ticketTierConfig
+    const prices = session.ticketTiers
         .map(tier => tier.overridePrice || tier.price)
         .filter(p => p != null);
 

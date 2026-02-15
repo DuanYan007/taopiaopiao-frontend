@@ -155,19 +155,22 @@ async function loadEvents() {
             eventSelect.appendChild(option);
         });
 
-        // 监听演出选择变更
-        eventSelect.addEventListener('change', async () => {
-            const selectedEventId = eventSelect.value;
-            if (selectedEventId) {
-                eventId = selectedEventId;
-                await loadEventData();
-            } else {
-                // 清空演出信息
-                document.getElementById('eventDetails').style.display = 'none';
-                document.getElementById('ticketTiersContainer').innerHTML =
-                    '<div class="text-center text-muted" style="padding: 40px;">请先选择演出</div>';
-            }
-        });
+        // 只在非只读模式下监听演出选择变更
+        if (!isReadonly) {
+            // 监听演出选择变更
+            eventSelect.addEventListener('change', async () => {
+                const selectedEventId = eventSelect.value;
+                if (selectedEventId) {
+                    eventId = selectedEventId;
+                    await loadEventData();
+                } else {
+                    // 清空演出信息
+                    document.getElementById('eventDetails').style.display = 'none';
+                    document.getElementById('ticketTiersContainer').innerHTML =
+                        '<div class="text-center text-muted" style="padding: 40px;">请先选择演出</div>';
+                }
+            });
+        }
     } catch (error) {
         console.error('加载演出列表失败:', error);
     }

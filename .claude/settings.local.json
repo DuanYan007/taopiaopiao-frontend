@@ -19,7 +19,9 @@
       "Bash(then)",
       "Bash(echo:*)",
       "Bash(fi:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(powershell:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []

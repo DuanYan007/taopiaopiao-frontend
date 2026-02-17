@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的订单 - 淘票票</title>
+    <link rel="stylesheet" href="/assets/css/client-common.css">
+    <link rel="stylesheet" href="/assets/css/client.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo">
+                <span style="font-size: 28px;">🎫</span>
+                <span>淘票票</span>
+            </a>
+
+            <nav class="nav">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="favorites.html" class="nav-link">我的收藏</a>
+                <a href="order-center.html" class="nav-link active">我的订单</a>
+                <a href="notifications.html" class="nav-link">消息通知</a>
+                <a href="profile.html" class="nav-link">个人中心</a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
+                <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <img src="" alt="用户" style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">
+                    <span>张三</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">我的订单</h1>
+
+            <!-- 订单状态筛选 -->
+            <div style="margin-bottom: 32px; display: flex; gap: 16px; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+                <button class="btn btn-primary btn-small">全部订单</button>
+                <button class="btn btn-secondary btn-small">待支付</button>
+                <button class="btn btn-secondary btn-small">已确认</button>
+                <button class="btn btn-secondary btn-small">已取消</button>
+                <button class="btn btn-secondary btn-small">已过期</button>
+            </div>
+
+            <!-- 订单列表 -->
+            <div class="order-list">
+                <!-- 订单1 - 待支付 -->
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div>
+                            <span style="color: #666; margin-right: 16px;">订单号：ORD202501251930001</span>
+                            <span style="color: #666;">2025-01-25 19:30</span>
+                        </div>
+                        <span class="badge badge-warning">待支付</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="flex" style="gap: 20px;">
+                            <div class="order-item-cover" style="width: 100px; height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                            <div style="flex: 1;">
+                                <div class="order-item-title" style="margin-bottom: 12px;">周杰伦2025嘉年华世界巡回演唱会-上海站</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">2025年3月15日 周六 19:30</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">上海体育场（徐家汇体育公园）</div>
+                                <div class="text-muted">VIP内场 B排3号 × 1张</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price price-large">¥2580</div>
+                                <div class="text-small text-muted" style="margin-top: 8px;">待支付</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-card-footer">
+                        <div class="text-muted text-small">
+                            请尽快完成支付，超时订单将自动取消
+                        </div>
+                        <div class="flex" style="gap: 12px;">
+                            <button class="btn btn-secondary btn-small">取消订单</button>
+                            <a href="order-confirm.html" class="btn btn-primary btn-small">立即支付</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订单2 - 已确认 -->
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div>
+                            <span style="color: #666; margin-right: 16px;">订单号：ORD202501201450002</span>
+                            <span style="color: #666;">2025-01-20 14:50</span>
+                        </div>
+                        <span class="badge badge-success">已确认</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="flex" style="gap: 20px;">
+                            <div class="order-item-cover" style="width: 100px; height: 140px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                            <div style="flex: 1;">
+                                <div class="order-item-title" style="margin-bottom: 12px;">林俊杰JJ20世界巡回演唱会-上海站</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">2025年4月12日 周六 19:30</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">梅赛德斯-奔驰文化中心</div>
+                                <div class="text-muted">看台一等 1排5号 × 2张</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price price-large">¥2560</div>
+                                <div class="text-small text-muted" style="margin-top: 8px;">¥1280 × 2</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-card-footer">
+                        <div class="text-muted text-small">
+                            支付时间：2025-01-20 14:52
+                        </div>
+                        <div class="flex" style="gap: 12px;">
+                            <a href="order-detail.html" class="btn btn-secondary btn-small">查看详情</a>
+                            <a href="order-detail.html" class="btn btn-primary btn-small">查看电子票</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订单3 - 已取消 -->
+                <div class="order-card" style="opacity: 0.7;">
+                    <div class="order-card-header">
+                        <div>
+                            <span style="color: #666; margin-right: 16px;">订单号：ORD202501151030003</span>
+                            <span style="color: #666;">2025-01-15 10:30</span>
+                        </div>
+                        <span class="badge badge-gray">已取消</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="flex" style="gap: 20px;">
+                            <div class="order-item-cover" style="width: 100px; height: 140px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                            <div style="flex: 1;">
+                                <div class="order-item-title" style="margin-bottom: 12px;">经典音乐剧《剧院魅影》中文版</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">2025年3月20日 周四 19:30</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">上海文化广场</div>
+                                <div class="text-muted">看台二等 3排12号 × 1张</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price price-large" style="color: #999; text-decoration: line-through;">¥480</div>
+                                <div class="text-small text-muted" style="margin-top: 8px;">未支付</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-card-footer">
+                        <div class="text-muted text-small">
+                            取消时间：2025-01-15 10:45（超时未支付自动取消）
+                        </div>
+                        <div class="flex" style="gap: 12px;">
+                            <button class="btn btn-secondary btn-small">删除订单</button>
+                            <a href="event-detail.html" class="btn btn-primary btn-small">重新购买</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订单4 - 已过期 -->
+                <div class="order-card" style="opacity: 0.7;">
+                    <div class="order-card-header">
+                        <div>
+                            <span style="color: #666; margin-right: 16px;">订单号：ORD202501101820004</span>
+                            <span style="color: #666;">2025-01-10 18:20</span>
+                        </div>
+                        <span class="badge badge-gray">已过期</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="flex" style="gap: 20px;">
+                            <div class="order-item-cover" style="width: 100px; height: 140px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                            <div style="flex: 1;">
+                                <div class="order-item-title" style="margin-bottom: 12px;">NBA季前赛：湖人vs勇士</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">2025年1月18日 周六 19:00</div>
+                                <div class="text-muted" style="margin-bottom: 8px;">梅赛德斯-奔驰文化中心</div>
+                                <div class="text-muted">内场 A区2排8号 × 1张</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="price price-large" style="color: #999;">¥1880</div>
+                                <div class="text-small text-muted" style="margin-top: 8px;">演出已结束</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-card-footer">
+                        <div class="text-muted text-small">
+                            演出时间：2025-01-18 19:00
+                        </div>
+                        <div class="flex" style="gap: 12px;">
+                            <button class="btn btn-secondary btn-small">删除订单</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分页 -->
+            <div style="margin-top: 32px; display: flex; justify-content: center; align-items: center; gap: 12px;">
+                <button class="btn btn-secondary btn-small" disabled>上一页</button>
+                <span style="padding: 6px 12px; background: #1976d2; color: white; border-radius: 4px;">1</span>
+                <span style="padding: 6px 12px; cursor: pointer;">2</span>
+                <span style="padding: 6px 12px; cursor: pointer;">3</span>
+                <span style="color: #999;">...</span>
+                <button class="btn btn-secondary btn-small">下一页</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>Copyright © 2025 淘票票 All Rights Reserved. | 沪ICP备12345678号</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

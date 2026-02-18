@@ -15,16 +15,16 @@ const EVENT_STATUS_MAP = {
 
 /**
  * 演出类型映射
- * 值说明参考API文档 6.2 演出类型
+ * 数据库类型值: concert, theatre, exhibition, sports, music, kids, dance
  */
 const EVENT_TYPE_MAP = {
     'concert': '演唱会',
-    'drama': '话剧',
-    'musical': '音乐剧',
-    'opera': '歌剧',
-    'dance': '舞蹈',
-    'exhibition': '展览',
-    'sports': '体育赛事'
+    'theatre': '话剧歌剧',
+    'exhibition': '展览休闲',
+    'sports': '体育赛事',
+    'music': '音乐会',
+    'kids': '儿童亲子',
+    'dance': '舞蹈芭蕾'
 };
 
 /**

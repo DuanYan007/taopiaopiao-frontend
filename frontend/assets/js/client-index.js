@@ -1,218 +1,276 @@
 /**
  * 淘票票客户端 - 首页逻辑
  * 文件：client-index.js
- * 功能：演出列表展示、分类筛选、分页加载
  */
 
+console.log('client-index.js 文件已加载');
+
 // 全局变量
-let currentPage = 1;
-const pageSize = 20;
-let totalPages = 0;
-let currentFilter = {
+var currentPage = 1;
+var pageSize = 20;
+var totalPages = 0;
+var currentFilter = {
     category: 'all',
     time: 'all',
     sort: 'hot'
 };
 
-// 页面加载时初始化
-window.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM加载完成，初始化首页');
-    bindFilterEvents();
-    loadEvents();
-});
+// 确保 DOM 加载完成后执行
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+function init() {
+    console.log('init() 函数执行');
+    initFilterButtons();
+    loadEventList();
+}
 
 /**
- * 绑定筛选事件
+ * 初始化筛选按钮
  */
-function bindFilterEvents() {
-    console.log('绑定筛选事件');
-    const options = document.querySelectorAll('.filter-option');
-    console.log('找到筛选选项数量:', options.length);
+function initFilterButtons() {
+    console.log('initFilterButtons() 函数执行');
+    var buttons = document.querySelectorAll('.filter-btn');
+    console.log('找到的按钮数量:', buttons.length);
 
-    options.forEach(option => {
-        option.addEventListener('click', function(e) {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
+            console.log('按钮被点击:', this.textContent);
 
-            const parent = this.parentElement;
-            const label = parent.querySelector('.filter-label');
+            // 获取父容器和标签
+            var parent = this.parentElement;
+            var label = parent.previousElementSibling;
 
-            console.log('点击筛选选项:', this.textContent, 'data-category:', this.dataset.category);
+            if (!label || !label.classList.contains('filter-label')) {
+                console.log('未找到 filter-label');
+                return;
+            }
 
-            if (!label) return;
+            var filterType = label.textContent;
+            console.log('筛选类型:', filterType);
 
             // 移除同组其他按钮的 active 状态
-            parent.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
-            // 激活当前按钮
+            var siblings = parent.querySelectorAll('.filter-btn');
+            for (var j = 0; j < siblings.length; j++) {
+                siblings[j].classList.remove('active');
+            }
             this.classList.add('active');
 
-            // 根据筛选类型更新过滤器
-            const filterType = label.textContent;
+            // 更新筛选条件
             if (filterType === '分类') {
-                currentFilter.category = this.dataset.category;
+                currentFilter.category = this.getAttribute('data-category');
             } else if (filterType === '时间') {
-                currentFilter.time = this.dataset.time;
+                currentFilter.time = this.getAttribute('data-time');
             } else if (filterType === '排序') {
-                currentFilter.sort = this.dataset.sort;
+                currentFilter.sort = this.getAttribute('data-sort');
             }
 
-            console.log('当前筛选条件:', currentFilter);
+            console.log('更新后的筛选条件:', currentFilter);
 
-            // 重置页码并重新加载
+            // 重新加载数据
             currentPage = 1;
-            loadEvents();
+            loadEventList();
         });
-    });
-
-    // 滚动加载更多
-    window.addEventListener('scroll', () => {
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-            if (currentPage < totalPages) {
-                currentPage++;
-                loadMoreEvents();
-            }
-        }
-    });
+    }
 }
 
 /**
  * 加载演出列表
  */
-async function loadEvents() {
-    const eventGrid = document.getElementById('eventGrid');
-    const loadingState = document.getElementById('loadingState');
-    const emptyState = document.getElementById('emptyState');
+function loadEventList() {
+    console.log('loadEventList() 执行, 筛选:', currentFilter);
 
-    console.log('加载演出列表，当前筛选:', currentFilter);
+    var loadingState = document.getElementById('loadingState');
+    var emptyState = document.getElementById('emptyState');
 
-    try {
-        if (loadingState) loadingState.style.display = 'flex';
-        if (emptyState) emptyState.style.display = 'none';
-
-        const params = {
-            page: currentPage,
-            pageSize: pageSize
-        };
-
-        // 根据筛选条件添加参数
-        if (currentFilter.category !== 'all') {
-            params.type = currentFilter.category;
-        }
-
-        console.log('请求参数:', params);
-
-        const result = await getEventList(params);
-        const eventList = result.list || [];
-
-        console.log('返回数据:', result);
-        console.log('演出列表长度:', eventList.length);
-
-        totalPages = Math.ceil((result.total || 0) / pageSize);
-
-        if (loadingState) loadingState.style.display = 'none';
-
-        if (eventList.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            return;
-        }
-
-        renderEventGrid(eventList);
-
-    } catch (error) {
-        console.error('加载演出列表失败:', error);
-        if (loadingState) loadingState.style.display = 'none';
-        if (emptyState) {
-            emptyState.style.display = 'block';
-            const emptyText = emptyState.querySelector('.empty-state-text');
-
-            if (error.message.includes('后端服务未响应')) {
-                emptyText.innerHTML = `
-                    <div style="color: #d32f2f;">后端服务未启动</div>
-                    <div style="font-size: 12px; margin-top: 8px; color: #666;">请启动后端服务 (http://localhost:8080)</div>
-                `;
-            } else {
-                emptyText.textContent = '加载失败: ' + error.message;
-            }
-        }
+    // 显示加载状态
+    if (loadingState) {
+        loadingState.style.display = 'flex';
     }
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+
+    // 构建请求 URL
+    var url = '/api/client/events?page=' + currentPage + '&pageSize=' + pageSize;
+    if (currentFilter.category !== 'all') {
+        url += '&type=' + currentFilter.category;
+    }
+
+    console.log('请求 URL:', url);
+
+    // 发送请求
+    fetch(url)
+        .then(function(response) {
+            console.log('响应状态:', response.status);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('响应数据:', data);
+
+            // 隐藏加载状态
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+
+            // 检查返回码
+            if (data.code !== 200) {
+                throw new Error(data.msg || '请求失败');
+            }
+
+            var eventList = data.data.list || [];
+            totalPages = Math.ceil((data.data.total || 0) / pageSize);
+
+            console.log('演出数量:', eventList.length);
+
+            if (eventList.length === 0) {
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                }
+                return;
+            }
+
+            renderEvents(eventList);
+        })
+        .catch(function(error) {
+            console.error('请求失败:', error);
+
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+            if (emptyState) {
+                emptyState.style.display = 'block';
+                var emptyText = emptyState.querySelector('.empty-state-text');
+                if (emptyText) {
+                    emptyText.textContent = '加载失败: ' + error.message;
+                }
+            }
+        });
 }
 
 /**
- * 渲染演出网格
+ * 渲染演出列表
  */
-function renderEventGrid(events) {
-    const eventGrid = document.getElementById('eventGrid');
+function renderEvents(events) {
+    console.log('renderEvents() 执行, 数量:', events.length);
 
-    // 清空现有内容（保留loading和empty状态元素，后面会重新创建）
-    eventGrid.innerHTML = '';
+    var eventGrid = document.getElementById('eventGrid');
 
-    // 重新创建 loading 和 empty 状态元素
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'loading-state';
-    loadingDiv.id = 'loadingState';
-    loadingDiv.style.display = 'none';
-    loadingDiv.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">加载中...</div>';
-
-    const emptyDiv = document.createElement('div');
-    emptyDiv.className = 'empty-state';
-    emptyDiv.id = 'emptyState';
-    emptyDiv.style.display = 'none';
-    emptyDiv.innerHTML = '<div class="empty-state-icon">🎭</div><div class="empty-state-text">暂无演出数据</div>';
-
-    // 创建演出卡片容器
-    const cardsContainer = document.createElement('div');
-    cardsContainer.className = 'event-cards-container';
-
-    events.forEach(event => {
-        const eventCard = createEventCard(event);
-        cardsContainer.appendChild(eventCard);
-    });
-
-    // 按顺序添加到grid
-    eventGrid.appendChild(loadingDiv);
-    eventGrid.appendChild(emptyDiv);
-    eventGrid.appendChild(cardsContainer);
-}
-
-/**
- * 创建演出卡片元素
- */
-function createEventCard(event) {
-    const priceRange = getPriceRange(event.ticketTiers);
-    const typeText = EVENT_TYPE_MAP[event.type] || event.type;
-    const isSoldOut = event.status === 'sold_out';
-
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    card.onclick = () => {
-        window.location.href = `event-detail.html?id=${event.id}`;
-    };
-
-    card.innerHTML = `
-        <div class="event-cover" style="background: ${getCoverGradient(event.type)}; height: 200px;">
-            ${isSoldOut ? '<div class="event-badge badge-danger">售罄</div>' : ''}
+    // 清空并重建
+    eventGrid.innerHTML = `
+        <div class="loading-state" id="loadingState" style="display: none;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">加载中...</div>
         </div>
-        <div class="event-info">
-            <div class="event-title">${event.name}</div>
-            <div class="event-meta">
-                <span>${event.city || '上海'}</span>
-                <span>|</span>
-                <span>${typeText}</span>
-            </div>
-            <div class="event-time">${formatDate(event.eventStartDate)}</div>
-            <div class="event-price">${priceRange}起</div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">🎭</div>
+            <div class="empty-state-text">暂无演出数据</div>
         </div>
     `;
+
+    var container = document.createElement('div');
+    container.className = 'event-list';
+
+    for (var i = 0; i < events.length; i++) {
+        var event = events[i];
+        var card = createEventCard(event);
+        container.appendChild(card);
+    }
+
+    eventGrid.appendChild(container);
+}
+
+/**
+ * 创建演出卡片
+ */
+function createEventCard(event) {
+    var priceRange = getPriceRange(event.ticketTiers);
+    var typeText = getTypeText(event.type);
+    var gradient = getTypeGradient(event.type);
+
+    var card = document.createElement('div');
+    card.className = 'event-card';
+
+    var handleClick = function() {
+        window.location.href = 'event-detail.html?id=' + event.id;
+    };
+
+    card.onclick = handleClick;
+
+    var soldOutBadge = event.status === 'sold_out'
+        ? '<div class="event-badge badge-danger">售罄</div>'
+        : '';
+
+    card.innerHTML =
+        '<div class="event-cover" style="background: ' + gradient + '; height: 200px;">' +
+            soldOutBadge +
+        '</div>' +
+        '<div class="event-info">' +
+            '<div class="event-title">' + event.name + '</div>' +
+            '<div class="event-meta">' +
+                '<span>' + (event.city || '上海') + '</span>' +
+                '<span>|</span>' +
+                '<span>' + typeText + '</span>' +
+            '</div>' +
+            '<div class="event-time">' + formatDate(event.eventStartDate) + '</div>' +
+            '<div class="event-price">' + priceRange + '起</div>' +
+        '</div>';
 
     return card;
 }
 
 /**
- * 根据演出类型获取封面渐变色
- * 对应数据库类型: concert, theatre, exhibition, sports, music, kids, dance
+ * 获取价格区间
  */
-function getCoverGradient(type) {
-    const gradients = {
+function getPriceRange(ticketTiers) {
+    if (!ticketTiers || ticketTiers.length === 0) return '-';
+
+    var prices = [];
+    for (var i = 0; i < ticketTiers.length; i++) {
+        if (ticketTiers[i].price != null) {
+            prices.push(ticketTiers[i].price);
+        }
+    }
+
+    if (prices.length === 0) return '-';
+
+    var minPrice = Math.min.apply(null, prices);
+    var maxPrice = Math.max.apply(null, prices);
+
+    if (minPrice === maxPrice) {
+        return '¥' + minPrice;
+    }
+    return '¥' + minPrice + ' - ¥' + maxPrice;
+}
+
+/**
+ * 获取类型显示文本
+ */
+function getTypeText(type) {
+    var map = {
+        'concert': '演唱会',
+        'theatre': '话剧歌剧',
+        'exhibition': '展览休闲',
+        'sports': '体育赛事',
+        'music': '音乐会',
+        'kids': '儿童亲子',
+        'dance': '舞蹈芭蕾'
+    };
+    return map[type] || type;
+}
+
+/**
+ * 获取类型渐变色
+ */
+function getTypeGradient(type) {
+    var gradients = {
         'concert': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         'theatre': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
         'exhibition': 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
@@ -225,32 +283,17 @@ function getCoverGradient(type) {
 }
 
 /**
- * 加载更多演出
+ * 格式化日期
  */
-async function loadMoreEvents() {
-    try {
-        const params = {
-            page: currentPage,
-            pageSize: pageSize
-        };
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
 
-        if (currentFilter.category !== 'all') {
-            params.type = currentFilter.category;
-        }
+    var date = new Date(dateStr);
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
 
-        const result = await getEventList(params);
-        const eventList = result.list || [];
-
-        if (eventList.length > 0) {
-            const eventGrid = document.getElementById('eventGrid');
-            const cardsContainer = eventGrid.querySelector('.event-cards-container');
-            if (cardsContainer) {
-                eventList.forEach(event => {
-                    cardsContainer.appendChild(createEventCard(event));
-                });
-            }
-        }
-    } catch (error) {
-        console.error('加载更多失败:', error);
-    }
+    return year + '-' + month + '-' + day;
 }
+
+console.log('client-index.js 初始化完成');

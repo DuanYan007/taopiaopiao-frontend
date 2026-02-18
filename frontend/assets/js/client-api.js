@@ -61,10 +61,10 @@ async function clientRequest(url, options = {}) {
  * @param {object} params - 查询参数
  * @returns {Promise<any>} 响应数据
  */
-function clientGet(url, params = {}) {
+async function clientGet(url, params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const fullUrl = queryString ? `${url}?${queryString}` : url;
-    return clientRequest(fullUrl, { method: 'GET' });
+    return await clientRequest(fullUrl, { method: 'GET' });
 }
 
 /**

@@ -9,8 +9,32 @@
   },
   "project_structure": {
     "frontend-admin": "管理后台前端 (主要开发目录)",
+    "frontend-client": "客户端前端 - 用户购票相关页面",
     "database": "数据库DDL文件",
     "docs": "设计文档和接口规范"
+  },
+  "client_pages": {
+    "已实现页面": [
+      "index.html (首页)",
+      "login.html (登录页)",
+      "event-detail.html (演出详情)",
+      "session-list.html (场次列表)",
+      "ticket-tier-selection.html (票档选择)",
+      "seat-selection.html (选座)",
+      "order-confirm.html (订单确认)",
+      "reservation-result.html (预订结果)",
+      "order-center.html (订单中心)",
+      "order-detail.html (订单详情)",
+      "favorites.html (我的收藏)",
+      "profile.html (个人中心)",
+      "notifications.html (消息通知)",
+      "address-management.html (地址管理)",
+      "attendee-management.html (观演人管理)",
+      "account-security.html (账户安全)",
+      "ai-qa.html (AI助手)",
+      "ai-subscription.html (AI订阅)",
+      "help-center.html (帮助中心)"
+    ]
   },
   "admin_pages": {
     "已实现列表页面": [
@@ -71,11 +95,13 @@
   },
   "css_patterns": {
     "admin.css": "管理后台通用样式 - flex布局、卡片、表格、表单",
-    "common.css": "全局样式 - 按钮、徽章、工具类",
+    "client-common.css": "客户端通用样式 - frontend-client使用, 包含按钮、徽章、工具类等",
+    "client.css": "客户端专属样式 - frontend-client页面特定样式",
     "表格类": ".admin-table, .admin-table-header, .admin-table-footer",
     "表单类": ".admin-form, .admin-form-section, .form-group"
   },
   "recent_changes": [
+    "2026-02-17: 前端客户端CSS重构 - common.css重命名为client-common.css, 所有资源路径改为绝对路径/assets/",
     "2025-02-02: 演出列表页优化 - 缩减城市/状态列宽,增加演出名称列宽",
     "2025-02-02: 添加类型映射 - typeMap将英文类型转换为中文显示",
     "2025-02-02: 场馆编辑页 - 容纳人数改为必填字段",
@@ -101,6 +127,7 @@
     "表单命名": "使用snake_case命名与数据库一致(如ticket_tiers[0].name)",
     "只读模式": "查看页通过readonly=true参数实现,禁用所有input",
     "分页参数": "page, pageSize, 返回total字段用于计算总页数",
-    "状态映射": "前端维护statusMap/typeMap对象用于显示转换"
+    "状态映射": "前端维护statusMap/typeMap对象用于显示转换",
+    "资源路径": "frontend-client使用绝对路径/assets/引用CSS和JS资源"
   }
 }

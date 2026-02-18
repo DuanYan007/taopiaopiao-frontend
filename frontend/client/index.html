@@ -137,14 +137,215 @@
         </div>
     </footer>
 
-    <!-- JavaScript - 将在开发阶段添加 -->
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-venues.js"></script>
     <script>
-        // TODO: 添加JavaScript代码
-        // - 加载演出数据
-        // - 筛选功能
-        // - 排序功能
-        // - 用户登录状态检查
-        console.log('淘票票前端 - 准备开发');
+        // 全局变量
+        let currentPage = 1;
+        const pageSize = 20;
+        let totalPages = 0;
+        let currentFilter = {
+            category: 'all',
+            time: 'all',
+            sort: 'hot'
+        };
+
+        // 页面加载时获取演出列表
+        window.addEventListener('DOMContentLoaded', loadEvents);
+
+        /**
+         * 加载演出列表
+         */
+        async function loadEvents() {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const eventGrid = document.getElementById('eventGrid');
+
+            try {
+                loadingState.style.display = 'flex';
+                emptyState.style.display = 'none';
+
+                const params = {
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                // 根据筛选条件添加参数
+                if (currentFilter.category !== 'all') {
+                    params.type = currentFilter.category;
+                }
+
+                const result = await getEventList(params);
+                const eventList = result.list || [];
+
+                totalPages = Math.ceil((result.total || 0) / pageSize);
+
+                loadingState.style.display = 'none';
+
+                if (eventList.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                renderEventGrid(eventList);
+
+            } catch (error) {
+                console.error('加载演出列表失败:', error);
+                loadingState.style.display = 'none';
+                emptyState.style.display = 'block';
+                const emptyText = emptyState.querySelector('.empty-state-text');
+
+                // 友好的错误提示
+                if (error.message.includes('后端服务未响应')) {
+                    emptyText.innerHTML = `
+                        <div style="color: #d32f2f;">后端服务未启动</div>
+                        <div style="font-size: 12px; margin-top: 8px; color: #666;">请启动后端服务 (http://localhost:8080)</div>
+                    `;
+                } else {
+                    emptyText.textContent = '加载失败: ' + error.message;
+                }
+            }
+        }
+
+        /**
+         * 渲染演出网格
+         */
+        function renderEventGrid(events) {
+            const eventGrid = document.getElementById('eventGrid');
+
+            eventGrid.innerHTML = events.map(event => {
+                const priceRange = getPriceRange(event.ticketTiers);
+                const typeText = EVENT_TYPE_MAP[event.type] || event.type;
+                const statusInfo = EVENT_STATUS_MAP[event.status];
+
+                return `
+                    <div class="event-card" onclick="location.href='event-detail.html?id=${event.id}'">
+                        <div class="event-cover" style="background: ${getCoverGradient(event.type)}; height: 200px;">
+                            ${event.status === 'sold_out' ? '<div class="event-badge badge-danger">售罄</div>' : ''}
+                        </div>
+                        <div class="event-info">
+                            <div class="event-title">${event.name}</div>
+                            <div class="event-meta">
+                                <span>${event.city || '上海'}</span>
+                                <span>|</span>
+                                <span>${typeText}</span>
+                            </div>
+                            <div class="event-time">${formatDate(event.eventStartDate)}</div>
+                            <div class="event-price">${priceRange}起</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * 根据演出类型获取封面渐变色
+         */
+        function getCoverGradient(type) {
+            const gradients = {
+                'concert': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'drama': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'musical': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'exhibition': 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                'sports': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'dance': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+            };
+            return gradients[type] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
+
+        /**
+         * 筛选选项点击事件
+         */
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterType = parent.querySelector('.filter-label').textContent;
+                if (filterType === '分类') {
+                    currentFilter.category = this.dataset.category;
+                } else if (filterType === '时间') {
+                    currentFilter.time = this.dataset.time;
+                } else if (filterType === '排序') {
+                    currentFilter.sort = this.dataset.sort;
+                }
+
+                currentPage = 1;
+                loadEvents();
+            });
+        });
+
+        // 滚动加载更多
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadMoreEvents();
+                }
+            }
+        });
+
+        /**
+         * 加载更多演出
+         */
+        async function loadMoreEvents() {
+            try {
+                const params = {
+                    page: currentPage,
+                    pageSize: pageSize
+                };
+
+                if (currentFilter.category !== 'all') {
+                    params.type = currentFilter.category;
+                }
+
+                const result = await getEventList(params);
+                const eventList = result.list || [];
+
+                if (eventList.length > 0) {
+                    appendEventGrid(eventList);
+                }
+            } catch (error) {
+                console.error('加载更多失败:', error);
+            }
+        }
+
+        /**
+         * 追加演出到网格
+         */
+        function appendEventGrid(events) {
+            const eventGrid = document.getElementById('eventGrid');
+
+            events.forEach(event => {
+                const priceRange = getPriceRange(event.ticketTiers);
+                const typeText = EVENT_TYPE_MAP[event.type] || event.type;
+
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                eventCard.onclick = () => location.href = `event-detail.html?id=${event.id}`;
+                eventCard.innerHTML = `
+                    <div class="event-cover" style="background: ${getCoverGradient(event.type)}; height: 200px;">
+                        ${event.status === 'sold_out' ? '<div class="event-badge badge-danger">售罄</div>' : ''}
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">${event.name}</div>
+                        <div class="event-meta">
+                            <span>${event.city || '上海'}</span>
+                            <span>|</span>
+                            <span>${typeText}</span>
+                        </div>
+                        <div class="event-time">${formatDate(event.eventStartDate)}</div>
+                        <div class="event-price">${priceRange}起</div>
+                    </div>
+                `;
+                eventGrid.appendChild(eventCard);
+            });
+        }
     </script>
 </body>
 </html>

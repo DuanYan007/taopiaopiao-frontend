@@ -49,85 +49,17 @@
             <p class="page-subtitle">周杰伦2025嘉年华世界巡回演唱会-上海站</p>
 
             <!-- 场次列表 -->
-            <div class="session-list">
-                <!-- 场次1 -->
-                <div class="session-card">
-                    <div class="session-info">
-                        <div class="session-date">
-                            2025年3月15日 周六 19:30
-                        </div>
-                        <div class="session-venue">
-                            📍 上海体育场（徐家汇体育公园）
-                        </div>
-                        <div style="margin-top: 8px;">
-                            <span class="badge badge-success">热卖中</span>
-                            <span class="badge badge-info" style="margin-left: 8px;">余票充足</span>
-                        </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-outline">设置提醒</button>
-                        <a href="seat-selection.html" class="btn btn-primary">选座购票</a>
-                        <a href="ticket-tier-selection.html" class="btn btn-secondary">票档购票</a>
-                    </div>
+            <div class="session-list" id="sessionList">
+                <!-- 加载提示 -->
+                <div class="loading-state" id="loadingState" style="padding: 40px 0;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">加载中...</div>
                 </div>
 
-                <!-- 场次2 -->
-                <div class="session-card">
-                    <div class="session-info">
-                        <div class="session-date">
-                            2025年3月16日 周日 19:30
-                        </div>
-                        <div class="session-venue">
-                            📍 上海体育场（徐家汇体育公园）
-                        </div>
-                        <div style="margin-top: 8px;">
-                            <span class="badge badge-success">热卖中</span>
-                            <span class="badge badge-warning" style="margin-left: 8px;">余票紧张</span>
-                        </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-outline">设置提醒</button>
-                        <a href="seat-selection.html" class="btn btn-primary">选座购票</a>
-                        <a href="ticket-tier-selection.html" class="btn btn-secondary">票档购票</a>
-                    </div>
-                </div>
-
-                <!-- 场次3 - 即将开售 -->
-                <div class="session-card" style="background-color: #f9f9f9;">
-                    <div class="session-info">
-                        <div class="session-date">
-                            2025年5月1日 周四 19:30
-                        </div>
-                        <div class="session-venue">
-                            📍 上海体育场（徐家汇体育公园）
-                        </div>
-                        <div style="margin-top: 8px;">
-                            <span class="badge badge-warning">即将开售</span>
-                            <span class="text-muted text-small" style="margin-left: 8px;">开售时间：2025年2月20日 12:00</span>
-                        </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-primary">设置开售提醒</button>
-                    </div>
-                </div>
-
-                <!-- 场次4 - 已售罄 -->
-                <div class="session-card" style="background-color: #f5f5f5; opacity: 0.7;">
-                    <div class="session-info">
-                        <div class="session-date">
-                            2025年5月2日 周五 19:30
-                        </div>
-                        <div class="session-venue">
-                            📍 上海体育场（徐家汇体育公园）
-                        </div>
-                        <div style="margin-top: 8px;">
-                            <span class="badge badge-danger">已售罄</span>
-                            <span class="text-muted text-small" style="margin-left: 8px;">可设置余票提醒</span>
-                        </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="btn btn-outline">设置余票提醒</button>
-                    </div>
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state-icon">🎫</div>
+                    <div class="empty-state-text">暂无场次信息</div>
                 </div>
             </div>
 
@@ -144,6 +76,204 @@
             </div>
         </div>
     </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-venues.js"></script>
+    <script>
+        // 获取URL参数中的演出ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('eventId');
+        let eventName = '';
+
+        // 页面加载时获取场次列表
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (eventId) {
+                // 先获取演出信息
+                try {
+                    const event = await getEventDetail(eventId);
+                    eventName = event.name;
+                    document.querySelector('.page-subtitle').textContent = eventName;
+                    document.title = `选择场次 - ${eventName} - 淘票票`;
+                    loadEventSessions(eventId);
+                } catch (error) {
+                    console.error('加载演出信息失败:', error);
+                }
+            } else {
+                showErrorMessage('缺少演出ID参数');
+            }
+        });
+
+        /**
+         * 加载场次列表
+         */
+        async function loadEventSessions(id) {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const sessionList = document.getElementById('sessionList');
+
+            try {
+                loadingState.style.display = 'block';
+                emptyState.style.display = 'none';
+
+                const result = await getEventSessions(id, { page: 1, pageSize: 100 });
+                const sessionListData = result.list || [];
+
+                loadingState.style.display = 'none';
+
+                if (sessionListData.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                renderSessionList(sessionListData);
+
+            } catch (error) {
+                console.error('加载场次列表失败:', error);
+                loadingState.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.querySelector('.empty-state-text').textContent = '加载失败: ' + error.message;
+            }
+        }
+
+        /**
+         * 渲染场次列表
+         */
+        function renderSessionList(sessions) {
+            const sessionList = document.getElementById('sessionList');
+
+            // 清空现有内容
+            sessionList.innerHTML = '';
+
+            sessions.forEach(session => {
+                const statusInfo = SESSION_STATUS_MAP[session.status] || { text: session.status, class: 'badge-secondary' };
+                const cardStyle = session.status === 'sold_out' ? 'background-color: #f5f5f5; opacity: 0.7;' : '';
+
+                const sessionCard = document.createElement('div');
+                sessionCard.className = 'session-card';
+                sessionCard.style.cssText = cardStyle;
+
+                // 格式化开始时间
+                const startTime = formatSessionTime(session.startTime);
+
+                // 余票状态
+                let availableStatus = '余票充足';
+                let availableClass = 'badge-info';
+                if (session.availableSeats === 0) {
+                    availableStatus = '已售罄';
+                    availableClass = 'badge-danger';
+                } else if (session.availableSeats < session.totalSeats * 0.2) {
+                    availableStatus = '余票紧张';
+                    availableClass = 'badge-warning';
+                }
+
+                sessionCard.innerHTML = `
+                    <div class="session-info">
+                        <div class="session-date">${startTime}</div>
+                        <div class="session-venue">📍 ${session.venueName || '待定'}</div>
+                        <div style="margin-top: 8px;">
+                            <span class="badge ${statusInfo.class}">${statusInfo.text}</span>
+                            <span class="badge ${availableClass}" style="margin-left: 8px;">${availableStatus}</span>
+                            ${session.availableSeats > 0 ? `<span class="text-muted text-small" style="margin-left: 8px;">剩余 ${formatSeatCount(session.availableSeats)} 张</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="session-actions">
+                        ${renderSessionActions(session)}
+                    </div>
+                `;
+
+                sessionList.appendChild(sessionCard });
+            });
+
+            // 添加加载更多按钮（如果有更多数据）
+            if (sessions.length > 0) {
+                const loadMoreDiv = document.createElement('div');
+                loadMoreDiv.style.textAlign = 'center';
+                loadMoreDiv.style.padding = '20px 0';
+                loadMoreDiv.innerHTML = `<span class="text-muted text-small">已显示全部场次</span>`;
+                sessionList.appendChild(loadMoreDiv);
+            }
+        }
+
+        /**
+         * 渲染场次操作按钮
+         */
+        function renderSessionActions(session) {
+            if (session.status === 'sold_out' || session.availableSeats === 0) {
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置余票提醒</button>
+                `;
+            }
+
+            if (session.status === 'selling_soon') {
+                return `
+                    <button class="btn btn-primary" onclick="setSaleReminder(${session.id})">设置开售提醒</button>
+                `;
+            }
+
+            // 检查选座方式
+            const seatMode = session.metadata?.seatSelectionMode || 'select';
+
+            if (seatMode === 'select') {
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
+                    <a href="seat-selection.html?sessionId=${session.id}" class="btn btn-primary">选座购票</a>
+                `;
+            } else {
+                return `
+                    <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
+                    <a href="ticket-tier-selection.html?sessionId=${session.id}" class="btn btn-primary">票档购票</a>
+                `;
+            }
+        }
+
+        /**
+         * 格式化场次时间
+         */
+        function formatSessionTime(dateTime) {
+            if (!dateTime) return '时间待定';
+            const date = new Date(dateTime);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            const weekDay = weekDays[date.getDay()];
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}年${month}月${day}日 ${weekDay} ${hours}:${minutes}`;
+        }
+
+        /**
+         * 设置提醒
+         */
+        function setReminder(sessionId) {
+            alert('提醒功能开发中，敬请期待！');
+        }
+
+        /**
+         * 设置开售提醒
+         */
+        function setSaleReminder(sessionId) {
+            alert('开售提醒功能开发中，敬请期待！');
+        }
+
+        /**
+         * 显示错误信息
+         */
+        function showErrorMessage(message) {
+            const mainContent = document.querySelector('.main-content .container');
+            mainContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">${message}</div>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">返回首页</a>
+                </div>
+            `;
+        }
+    </script>
 
     <!-- 页脚 -->
     <footer class="footer">

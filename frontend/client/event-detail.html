@@ -218,6 +218,170 @@
         </div>
     </main>
 
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-sessions.js"></script>
+    <script src="/assets/js/client-venues.js"></script>
+    <script>
+        // 获取URL参数中的演出ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        // 页面加载时获取演出详情
+        window.addEventListener('DOMContentLoaded', () => {
+            if (eventId) {
+                loadEventDetail(eventId);
+                loadEventSessions(eventId);
+            } else {
+                showErrorMessage('缺少演出ID参数');
+            }
+        });
+
+        /**
+         * 加载演出详情
+         */
+        async function loadEventDetail(id) {
+            try {
+                const event = await getEventDetail(id);
+                renderEventDetail(event);
+            } catch (error) {
+                console.error('加载演出详情失败:', error);
+                showErrorMessage('加载演出详情失败: ' + error.message);
+            }
+        }
+
+        /**
+         * 渲染演出详情
+         */
+        function renderEventDetail(event) {
+            // 更新页面标题
+            document.title = `${event.name} - 淘票票`;
+
+            // 更新面包屑
+            const breadcrumbItems = document.querySelectorAll('.breadcrumb-item');
+            if (breadcrumbItems.length >= 3) {
+                breadcrumbItems[1].innerHTML = `<a href="index.html?type=${event.type}">${EVENT_TYPE_MAP[event.type] || '演出'}</a>`;
+                breadcrumbItems[2].textContent = event.name;
+            }
+
+            // 更新演出标题
+            document.querySelector('.detail-title').textContent = event.name;
+
+            // 更新演出信息
+            const detailInfo = document.querySelector('.detail-info');
+            detailInfo.innerHTML = `
+                <div class="detail-info-item">
+                    <span class="detail-info-label">艺人：</span>
+                    <span class="detail-info-value">${event.artist || '-'}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">主办方：</span>
+                    <span class="detail-info-value">${event.organizer || '-'}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">类型：</span>
+                    <span class="detail-info-value">${EVENT_TYPE_MAP[event.type] || event.type}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">城市：</span>
+                    <span class="detail-info-value">${event.city || '-'}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">演出时间：</span>
+                    <span class="detail-info-value">${event.eventStartDate} ~ ${event.eventEndDate}</span>
+                </div>
+                <div class="detail-info-item">
+                    <span class="detail-info-label">演出时长：</span>
+                    <span class="detail-info-value">${event.duration || '-'}分钟</span>
+                </div>
+            `;
+
+            // 更新购票按钮链接
+            const buyButtons = document.querySelectorAll('.detail-actions .btn-primary');
+            buyButtons.forEach(btn => {
+                btn.href = `session-list.html?eventId=${event.id}`;
+            });
+
+            // 更新票档说明
+            renderTicketTiers(event.ticketTiers);
+
+            // 更新温馨提示
+            if (event.tips) {
+                updateTipsSection(event.tips, event.refundPolicy);
+            }
+
+            // 更新标签
+            if (event.tags && event.tags.length > 0) {
+                const tagsHtml = event.tags.map(tag => `<span class="badge badge-info">${tag}</span>`).join(' ');
+                const detailContent = document.querySelector('.detail-content');
+                const tagsDiv = document.createElement('div');
+                tagsDiv.style.marginTop = '12px';
+                tagsDiv.innerHTML = tagsHtml;
+                detailContent.appendChild(tagsDiv);
+            }
+        }
+
+        /**
+         * 渲染票档列表
+         */
+        function renderTicketTiers(ticketTiers) {
+            const container = document.querySelector('.ticket-tiers');
+
+            if (!ticketTiers || ticketTiers.length === 0) {
+                container.innerHTML = '<p class="text-muted">暂无票档信息</p>';
+                return;
+            }
+
+            container.innerHTML = ticketTiers.map(tier => `
+                <div class="ticket-tier">
+                    <div class="ticket-tier-info">
+                        <div class="ticket-tier-name">${tier.name}</div>
+                        <div class="ticket-tier-remaining">${tier.description || ''}</div>
+                    </div>
+                    <div class="ticket-tier-price">${formatPrice(tier.price)}</div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * 更新温馨提示区域
+         */
+        function updateTipsSection(tips, refundPolicy) {
+            const tipsSection = document.querySelector('.detail-section');
+            if (tipsSection && tipsSection.querySelector('.detail-section-title').textContent === '演出须知') {
+                const content = tipsSection.querySelector('.detail-section-content');
+                let tipsHtml = '';
+
+                if (tips) {
+                    tipsHtml += `<p style="margin-bottom: 12px;">${tips}</p>`;
+                }
+                if (refundPolicy) {
+                    tipsHtml += `<p style="margin-bottom: 12px;"><strong>退换票政策：</strong>${refundPolicy}</p>`;
+                }
+
+                if (tipsHtml) {
+                    content.innerHTML = tipsHtml;
+                }
+            }
+        }
+
+        /**
+         * 显示错误信息
+         */
+        function showErrorMessage(message) {
+            const mainContent = document.querySelector('.main-content .container');
+            mainContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <div class="empty-state-text">${message}</div>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">返回首页</a>
+                </div>
+            `;
+        }
+    </script>
+
     <!-- 页脚 -->
     <footer class="footer">
         <div class="container">

@@ -54,12 +54,8 @@
 
                         <div class="detail-info">
                             <div class="detail-info-item">
-                                <span class="detail-info-label">艺人：</span>
+                                <span class="detail-info-label">艺人/主办方：</span>
                                 <span class="detail-info-value">周杰伦</span>
-                            </div>
-                            <div class="detail-info-item">
-                                <span class="detail-info-label">主办方：</span>
-                                <span class="detail-info-value">杰威尔音乐</span>
                             </div>
                             <div class="detail-info-item">
                                 <span class="detail-info-label">类型：</span>
@@ -273,12 +269,8 @@
             const detailInfo = document.querySelector('.detail-info');
             detailInfo.innerHTML = `
                 <div class="detail-info-item">
-                    <span class="detail-info-label">艺人：</span>
+                    <span class="detail-info-label">艺人/主办方：</span>
                     <span class="detail-info-value">${event.artist || '-'}</span>
-                </div>
-                <div class="detail-info-item">
-                    <span class="detail-info-label">主办方：</span>
-                    <span class="detail-info-value">${event.organizer || '-'}</span>
                 </div>
                 <div class="detail-info-item">
                     <span class="detail-info-label">类型：</span>

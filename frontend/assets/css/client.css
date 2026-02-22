@@ -88,13 +88,6 @@
     margin-top: 24px;
 }
 
-/* 响应式断点：大屏幕 */
-@media (min-width: 1400px) {
-    .event-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
 /* 响应式断点：中等屏幕 */
 @media (max-width: 1200px) {
     .event-grid {
@@ -107,13 +100,6 @@
     .event-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
-    }
-}
-
-/* 响应式断点：超小屏幕 */
-@media (max-width: 480px) {
-    .event-grid {
-        grid-template-columns: 1fr;
     }
 }
 

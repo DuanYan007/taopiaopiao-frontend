@@ -83,9 +83,38 @@
 /* 演出卡片网格 */
 .event-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin-top: 24px;
+}
+
+/* 响应式断点：大屏幕 */
+@media (min-width: 1400px) {
+    .event-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* 响应式断点：中等屏幕 */
+@media (max-width: 1200px) {
+    .event-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 响应式断点：小屏幕 */
+@media (max-width: 768px) {
+    .event-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+/* 响应式断点：超小屏幕 */
+@media (max-width: 480px) {
+    .event-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* loading 和 empty 状态占满整行 */
@@ -780,9 +809,5 @@
 
     .nav {
         gap: 16px;
-    }
-
-    .event-grid {
-        grid-template-columns: 1fr;
     }
 }

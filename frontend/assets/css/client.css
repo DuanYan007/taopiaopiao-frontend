@@ -88,6 +88,18 @@
     margin-top: 24px;
 }
 
+/* loading 和 empty 状态占满整行 */
+.event-grid > .loading-state,
+.event-grid > .empty-state {
+    grid-column: 1 / -1;
+    display: none;
+}
+
+.event-grid > .loading-state[style*="flex"],
+.event-grid > .empty-state[style*="block"] {
+    display: flex;
+}
+
 .event-card {
     background: white;
     border-radius: 8px;

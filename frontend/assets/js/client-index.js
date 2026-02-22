@@ -163,28 +163,32 @@ function renderEvents(events) {
 
     var eventGrid = document.getElementById('eventGrid');
 
-    // 清空并重建
-    eventGrid.innerHTML = `
-        <div class="loading-state" id="loadingState" style="display: none;">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">加载中...</div>
-        </div>
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-state-icon">🎭</div>
-            <div class="empty-state-text">暂无演出数据</div>
-        </div>
-    `;
+    // 清空并重建（直接将卡片添加到 eventGrid，利用其 grid 布局）
+    eventGrid.innerHTML = '';
 
-    var container = document.createElement('div');
-    container.className = 'event-list';
+    // 创建 loading 和 empty 状态元素
+    var loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-state';
+    loadingDiv.id = 'loadingState';
+    loadingDiv.style.display = 'none';
+    loadingDiv.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">加载中...</div>';
 
+    var emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-state';
+    emptyDiv.id = 'emptyState';
+    emptyDiv.style.display = 'none';
+    emptyDiv.innerHTML = '<div class="empty-state-icon">🎭</div><div class="empty-state-text">暂无演出数据</div>';
+
+    // 将状态元素添加到 grid
+    eventGrid.appendChild(loadingDiv);
+    eventGrid.appendChild(emptyDiv);
+
+    // 直接将演出卡片添加到 eventGrid（grid 布局会自动排列）
     for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var card = createEventCard(event);
-        container.appendChild(card);
+        eventGrid.appendChild(card);
     }
-
-    eventGrid.appendChild(container);
 }
 
 /**

@@ -212,58 +212,59 @@
 }
 
 /* 演出表格列宽设置 */
-.col-id {
+.admin-table .col-id {
     flex: 0 0 50px;
     justify-content: center;
 }
 
-.col-name {
+.admin-table .col-name {
     flex: 3;
     min-width: 200px;
 }
 
-.col-type {
+.admin-table .col-type {
     flex: 0 0 90px;
 }
 
-.col-artist {
-    flex: 1.5;
-    min-width: 100px;
+.admin-table .col-artist {
+    flex: 1;
+    min-width: 80px;
 }
 
-.col-city {
+.admin-table .col-city {
     flex: 0 0 50px;
+    min-width: 50px;
 }
 
-.col-status {
-    flex: 0 0 65px;
+.admin-table .col-status {
+    flex: 0 0 60px;
+    min-width: 60px;
 }
 
-.col-price {
+.admin-table .col-price {
     flex: 0 0 120px;
 }
 
-.col-time {
+.admin-table .col-time {
     flex: 0 0 160px;
 }
 
-.col-action {
+.admin-table .col-action {
     flex: 0 0 280px;
-    padding: 16px 8px;
 }
 
 /* 场次表格列宽设置 */
-.col-session {
+.admin-table .col-session {
     flex: 1.5;
     min-width: 120px;
 }
 
-.col-venue {
+.admin-table .col-venue {
     flex: 1.5;
     min-width: 120px;
 }
 
-.col-seats {
+.admin-table .col-seats {
     flex: 0 0 120px;
     font-size: 12px;
 }
@@ -272,6 +273,7 @@
 .admin-table td.col-action,
 .admin-table th.col-action {
     white-space: nowrap;
+    padding: 16px 8px;
 }
 
 .admin-table th {
@@ -425,6 +427,11 @@
 
 .action-btn-warning:hover {
     background: #ffecb3;
+}
+
+.action-btn-placeholder {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 /* 仪表盘 */

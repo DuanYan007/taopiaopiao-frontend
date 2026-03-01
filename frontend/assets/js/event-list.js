@@ -114,46 +114,53 @@ function renderTable(events) {
  * 状态流转规则：
  * draft(草稿) -> on_sale(上架) -> off_sale(下架) -> sold_out(已售完)
  * draft(草稿) 可以删除
- * on_sale(上架) 也可以直接 -> sold_out(已售完)
- * off_sale(下架) 也可以 -> sold_out(已售完)
+ * on_sale(上架) -> off_sale(下架) 或 sold_out(已售完)
+ * off_sale(下架) -> on_sale(上架)，不能直接跳到已售完
  * sold_out(已售完) 是最终状态，不可变更
+ *
+ * 所有状态统一显示3个按钮位置，用占位符保持对齐
  */
 function renderActionButtons(event) {
     const status = event.status;
     let buttons = '';
 
-    // 查看按钮（所有状态都有）
+    // 查看按钮（所有状态都有）- 第1个位置
     buttons += `<button class="action-btn action-btn-view" onclick="viewEvent(${event.id})">查看</button>`;
 
     switch (status) {
         case 'draft':
-            // 草稿状态：发布、编辑、删除
+            // 草稿状态：编辑、发布、删除
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
             buttons += `<button class="action-btn action-btn-confirm" onclick="changeEventStatus(${event.id}, 'on_sale')">发布</button>`;
             buttons += `<button class="action-btn action-btn-delete" onclick="deleteEvent(${event.id})">删除</button>`;
             break;
 
         case 'on_sale':
-            // 上架状态：编辑、下架、设为已售完
+            // 上架状态：编辑、下架、已售完
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
             buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">下架</button>`;
             buttons += `<button class="action-btn action-btn-warning" onclick="changeEventStatus(${event.id}, 'sold_out')">已售完</button>`;
             break;
 
         case 'off_sale':
-            // 下架状态：编辑、设为已售完
+            // 下架状态：编辑、上架、占位
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
-            buttons += `<button class="action-btn action-btn-warning" onclick="changeEventStatus(${event.id}, 'sold_out')">已售完</button>`;
+            buttons += `<button class="action-btn action-btn-confirm" onclick="changeEventStatus(${event.id}, 'on_sale')">上架</button>`;
+            buttons += `<button class="action-btn action-btn-placeholder" disabled></button>`;
             break;
 
         case 'sold_out':
-            // 已售罄状态：最终状态，只查看
+            // 已售罄状态：最终状态，只有查看，其他位置占位
+            buttons += `<button class="action-btn action-btn-placeholder" disabled></button>`;
+            buttons += `<button class="action-btn action-btn-placeholder" disabled></button>`;
+            buttons += `<button class="action-btn action-btn-placeholder" disabled></button>`;
             break;
 
         default:
-            // 默认：编辑、下架
+            // 默认：编辑、下架、占位
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
             buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">下架</button>`;
+            buttons += `<button class="action-btn action-btn-placeholder" disabled></button>`;
     }
 
     return buttons;

@@ -101,6 +101,8 @@
     "表单类": ".admin-form, .admin-form-section, .form-group"
   },
   "recent_changes": [
+    "2026-02-25: 修复表格列宽CSS不生效问题 - 原因是选择器特异性不足，.col-*被.admin-table td覆盖，改为.admin-table .col-*提高特异性",
+    "2026-02-25: 演出状态流转调整 - 下架状态只能转为上架，不能直接转为已售完；按钮对齐优化",
     "2026-02-17: 前端客户端CSS重构 - common.css重命名为client-common.css, 所有资源路径改为绝对路径/assets/",
     "2025-02-02: 演出列表页优化 - 缩减城市/状态列宽,增加演出名称列宽",
     "2025-02-02: 添加类型映射 - typeMap将英文类型转换为中文显示",

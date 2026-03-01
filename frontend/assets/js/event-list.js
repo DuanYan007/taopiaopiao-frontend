@@ -79,7 +79,7 @@ function renderTable(events) {
     const tbody = document.getElementById('eventTableBody');
 
     if (!events || events.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>';
         return;
     }
 
@@ -87,17 +87,6 @@ function renderTable(events) {
         const statusInfo = statusMap[event.status] || { text: event.status, class: 'badge-secondary' };
         const typeText = typeMap[event.type] || event.type;
         const actionButtons = renderActionButtons(event);
-
-        // 计算价格区间
-        let priceRange = '-';
-        if (event.ticketTiers && event.ticketTiers.length > 0) {
-            const prices = event.ticketTiers.map(tier => tier.price).filter(p => p != null);
-            if (prices.length > 0) {
-                const minPrice = Math.min(...prices);
-                const maxPrice = Math.max(...prices);
-                priceRange = minPrice === maxPrice ? `¥${minPrice}` : `¥${minPrice} - ¥${maxPrice}`;
-            }
-        }
 
         return `
         <tr>
@@ -107,7 +96,6 @@ function renderTable(events) {
             <td class="col-artist">${event.artist}</td>
             <td class="col-city">${event.city}</td>
             <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
-            <td class="col-price">${priceRange}</td>
             <td class="col-time">${event.createdAt || event.createTime}</td>
             <td class="col-action">
                 <div class="action-buttons">
@@ -123,6 +111,12 @@ function renderTable(events) {
 
 /**
  * 根据状态渲染操作按钮
+ * 状态流转规则：
+ * draft(草稿) -> on_sale(上架) -> off_sale(下架) -> sold_out(已售完)
+ * draft(草稿) 可以删除
+ * on_sale(上架) 也可以直接 -> sold_out(已售完)
+ * off_sale(下架) 也可以 -> sold_out(已售完)
+ * sold_out(已售完) 是最终状态，不可变更
  */
 function renderActionButtons(event) {
     const status = event.status;
@@ -140,25 +134,20 @@ function renderActionButtons(event) {
             break;
 
         case 'on_sale':
-            // 上架状态：编辑、下架
+            // 上架状态：编辑、下架、设为已售完
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
             buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">下架</button>`;
+            buttons += `<button class="action-btn action-btn-warning" onclick="changeEventStatus(${event.id}, 'sold_out')">已售完</button>`;
             break;
 
         case 'off_sale':
-            // 下架状态：编辑、上架
+            // 下架状态：编辑、设为已售完
             buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
-            buttons += `<button class="action-btn action-btn-confirm" onclick="changeEventStatus(${event.id}, 'on_sale')">上架</button>`;
+            buttons += `<button class="action-btn action-btn-warning" onclick="changeEventStatus(${event.id}, 'sold_out')">已售完</button>`;
             break;
 
         case 'sold_out':
-            // 已售罄状态：只查看
-            break;
-
-        case 'coming_soon':
-            // 即将开售状态：编辑、取消开售
-            buttons += `<button class="action-btn action-btn-edit" onclick="editEvent(${event.id})">编辑</button>`;
-            buttons += `<button class="action-btn action-btn-delete" onclick="changeEventStatus(${event.id}, 'off_sale')">取消开售</button>`;
+            // 已售罄状态：最终状态，只查看
             break;
 
         default:
@@ -263,10 +252,15 @@ async function changeEventStatus(id, newStatus) {
     const statusText = {
         'on_sale': '上架',
         'off_sale': '下架',
+        'sold_out': '已售完',
         'draft': '草稿'
     };
 
-    if (!confirm(`确定要将演出${statusText[newStatus]}吗？`)) return;
+    const warningText = newStatus === 'sold_out' ?
+        '设为已售完后，该演出将无法再恢复上架，确定要继续吗？' :
+        `确定要将演出${statusText[newStatus]}吗？`;
+
+    if (!confirm(warningText)) return;
 
     try {
         await put(`/api/admin/events/${id}/status`, { status: newStatus });

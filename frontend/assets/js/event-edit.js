@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadVenues() {
     try {
-        const result = await get('/api/admin/venues');
+        const result = await get('/api/admin/venues/all');
 
         // 处理返回的数据格式
         // get() 已经提取了 data 字段，所以 result 可能是 {list: [...], total: ...} 或直接是数组

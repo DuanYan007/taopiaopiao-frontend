@@ -34,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
  */
 async function loadVenues() {
     try {
-        const result = await get('/api/admin/venues');
+        const result = await get('/api/admin/venues/all');
         const venueList = result.list || result.data || result || [];
 
         const venueSelect = document.getElementById('venueSelect');

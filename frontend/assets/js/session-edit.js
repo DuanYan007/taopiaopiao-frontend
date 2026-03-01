@@ -101,7 +101,7 @@ window.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadVenues() {
     try {
-        const result = await get('/api/admin/venues');
+        const result = await get('/api/admin/venues/all');
         const venueList = result.list || result.data || result || [];
 
         console.log('场馆列表数据:', venueList);

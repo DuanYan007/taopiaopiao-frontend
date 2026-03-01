@@ -77,7 +77,7 @@ window.addEventListener('DOMContentLoaded', async () => {
  */
 async function loadVenues() {
     try {
-        const result = await get('/api/admin/venues');
+        const result = await get('/api/admin/venues/all');
         const venueList = result.list || result.data || result || [];
 
         const venueSelect = document.querySelector('[name="venueId"]');
@@ -121,8 +121,20 @@ async function loadTemplateData() {
         if (template.layoutData) {
             try {
                 const layoutData = JSON.parse(template.layoutData);
-                areas = layoutData.areas || [];
+                areas = (layoutData.areas || []).map(area => {
+                    // 为每个区域计算 totalSeats
+                    const rowsWithCount = (area.rows || []).map(row => ({
+                        ...row,
+                        seatCount: (row.endSeat - row.startSeat + 1) || 0
+                    }));
+                    return {
+                        ...area,
+                        rows: rowsWithCount,
+                        totalSeats: rowsWithCount.reduce((sum, row) => sum + row.seatCount, 0)
+                    };
+                });
                 renderAreas();
+                updateTotals(); // 确保加载后更新总数显示
             } catch (e) {
                 console.error('解析布局数据失败:', e);
             }

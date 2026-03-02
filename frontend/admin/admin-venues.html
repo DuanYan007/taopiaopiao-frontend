@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>场馆管理 - 淘票票管理后台</title>
     <link rel="stylesheet" href="/assets/css/common.css">
-    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/admin-common.css">
+    <link rel="stylesheet" href="/assets/css/admin-venues.css">
 </head>
 <body>
     <div class="admin-layout">
@@ -124,14 +125,14 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>场馆名称</th>
-                                <th>城市</th>
-                                <th>区域</th>
-                                <th>详细地址</th>
-                                <th>容纳人数</th>
-                                <th>创建时间</th>
-                                <th>操作</th>
+                                <th class="col-id">ID</th>
+                                <th class="col-name">场馆名称</th>
+                                <th class="col-city">城市</th>
+                                <th class="col-district">区域</th>
+                                <th class="col-address">详细地址</th>
+                                <th class="col-capacity">容纳人数</th>
+                                <th class="col-created">创建时间</th>
+                                <th class="col-action">操作</th>
                             </tr>
                         </thead>
                         <tbody id="venueTableBody">

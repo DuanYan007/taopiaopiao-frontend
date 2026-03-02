@@ -38,12 +38,18 @@ async function request(url, options = {}) {
 
         // 处理403 - 权限不足
         if (response.status === 403) {
-            throw new Error(result.msg || '权限不足');
+            const errorMsg = result.msg || '权限不足';
+            const err = new Error(errorMsg);
+            err.msg = errorMsg;
+            throw err;
         }
 
-        // 处理其他错误
-        if (result.code !== 200) {
-            throw new Error(result.msg || '请求失败');
+        // 处理其他错误 - code不为200或success为false
+        if (result.code !== 200 || result.success === false) {
+            const errorMsg = result.msg || '请求失败';
+            const err = new Error(errorMsg);
+            err.msg = errorMsg;
+            throw err;
         }
 
         return result.data;
@@ -51,6 +57,10 @@ async function request(url, options = {}) {
     } catch (error) {
         if (error.message === '登录已过期') {
             throw error;
+        }
+        // 确保错误对象有msg属性
+        if (!error.msg && error.message) {
+            error.msg = error.message;
         }
         console.error('API请求错误:', error);
         throw error;

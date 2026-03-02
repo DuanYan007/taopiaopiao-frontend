@@ -76,7 +76,7 @@ async function loadSessions() {
     } catch (error) {
         console.error('加载失败:', error);
         document.getElementById('sessionTableBody').innerHTML =
-            '<tr><td colspan="9" class="text-center text-muted">加载失败: ' + error.msg + '</td></tr>';
+            '<tr><td colspan="7" class="text-center text-muted">加载失败: ' + error.msg + '</td></tr>';
     }
 }
 
@@ -129,7 +129,7 @@ function renderTable(sessions) {
     const tbody = document.getElementById('sessionTableBody');
 
     if (!sessions || sessions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
         return;
     }
 
@@ -152,10 +152,6 @@ function renderTable(sessions) {
                 <div style="font-weight: 500;">${session.sessionName || '-'}</div>
             </td>
             <td>${startTime}</td>
-            <td>
-                <div>${session.venueName || '-'}</div>
-                <div class="text-small text-muted">${session.hallName || ''}</div>
-            </td>
             <td>${seatInfo}</td>
             <td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
             <td>

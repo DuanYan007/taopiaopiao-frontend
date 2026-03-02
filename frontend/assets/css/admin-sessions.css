@@ -92,7 +92,7 @@
     min-height: 56px;
 }
 
-/* 场次表格列宽 - 9列对应：ID, 演出名称, 场次名称, 场次时间, 场馆, 座位情况, 状态, 操作 */
+/* 场次表格列宽 - 7列对应：ID, 演出名称, 场次名称, 场次时间, 座位情况, 状态, 操作 */
 .admin-table th:nth-child(1),
 .admin-table td:nth-child(1) {
     flex: 0 0 60px;
@@ -100,16 +100,15 @@
 
 .admin-table th:nth-child(2),
 .admin-table td:nth-child(2) {
-    flex: 2.5;
-    min-width: 180px;
+    flex: 3;
+    min-width: 200px;
     justify-content: flex-start;
     padding-left: 16px;
 }
 
 .admin-table th:nth-child(3),
 .admin-table td:nth-child(3) {
-    flex: 1;
-    min-width: 80px;
+    flex: 0 0 120px;
     justify-content: flex-start;
     padding-left: 16px;
 }
@@ -121,37 +120,24 @@
 
 .admin-table th:nth-child(5),
 .admin-table td:nth-child(5) {
-    flex: 1.5;
-    min-width: 120px;
+    flex: 0 0 100px;
 }
 
 .admin-table th:nth-child(6),
 .admin-table td:nth-child(6) {
-    flex: 0 0 100px;
+    flex: 0 0 80px;
 }
 
 .admin-table th:nth-child(7),
 .admin-table td:nth-child(7) {
-    flex: 0 0 80px;
-}
-
-.admin-table th:nth-child(8),
-.admin-table td:nth-child(8) {
-    flex: 0 0 80px;
-}
-
-.admin-table th:nth-child(9),
-.admin-table td:nth-child(9) {
     flex: 0 0 240px;
 }
 
-/* 左对齐的列：演出名称、场次名称、场馆 */
+/* 左对齐的列：演出名称、场次名称 */
 .admin-table th:nth-child(2),
 .admin-table td:nth-child(2),
 .admin-table th:nth-child(3),
-.admin-table td:nth-child(3),
-.admin-table th:nth-child(5),
-.admin-table td:nth-child(5) {
+.admin-table td:nth-child(3) {
     text-align: left;
     justify-content: flex-start;
     padding-left: 16px;

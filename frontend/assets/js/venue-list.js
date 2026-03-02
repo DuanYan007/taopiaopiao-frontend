@@ -64,14 +64,14 @@ function renderTable(venues) {
 
     tbody.innerHTML = venues.map(venue => `
         <tr>
-            <td>${venue.id}</td>
-            <td>${venue.name}</td>
-            <td>${venue.city}</td>
-            <td>${venue.district || '-'}</td>
-            <td>${venue.address}</td>
-            <td>${venue.capacity ? venue.capacity.toLocaleString() : '-'}</td>
-            <td>${venue.createdAt || venue.createTime}</td>
-            <td>
+            <td class="col-id">${venue.id}</td>
+            <td class="col-name">${venue.name}</td>
+            <td class="col-city">${venue.city}</td>
+            <td class="col-district">${venue.district || '-'}</td>
+            <td class="col-address">${venue.address}</td>
+            <td class="col-capacity">${venue.capacity ? venue.capacity.toLocaleString() : '-'}</td>
+            <td class="col-created">${venue.createdAt || venue.createTime}</td>
+            <td class="col-action">
                 <div class="action-buttons">
                     <button class="action-btn action-btn-view" onclick="viewVenue(${venue.id})">查看</button>
                     <button class="action-btn action-btn-edit" onclick="editVenue(${venue.id})">编辑</button>

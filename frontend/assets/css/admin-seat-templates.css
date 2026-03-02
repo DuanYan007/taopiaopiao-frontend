@@ -39,6 +39,7 @@
     display: block;
     width: 100%;
     flex-shrink: 0;
+    overflow-y: scroll;
 }
 
 .admin-table tbody {

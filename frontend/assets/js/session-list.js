@@ -143,22 +143,22 @@ function renderTable(sessions) {
 
         return `
         <tr>
-            <td class="col-id">${session.id}</td>
-            <td class="col-name">
+            <td>${session.id}</td>
+            <td>
                 <div style="font-weight: 600;">${session.eventName || '-'}</div>
                 <div class="text-small text-muted">${session.event?.subtitle || ''}</div>
             </td>
-            <td class="col-session">
+            <td>
                 <div style="font-weight: 500;">${session.sessionName || '-'}</div>
             </td>
-            <td class="col-time">${startTime}</td>
-            <td class="col-venue">
+            <td>${startTime}</td>
+            <td>
                 <div>${session.venueName || '-'}</div>
                 <div class="text-small text-muted">${session.hallName || ''}</div>
             </td>
-            <td class="col-seats">${seatInfo}</td>
-            <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
-            <td class="col-action">
+            <td>${seatInfo}</td>
+            <td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
+            <td>
                 <div class="action-buttons">
                     ${actionButtons}
                 </div>

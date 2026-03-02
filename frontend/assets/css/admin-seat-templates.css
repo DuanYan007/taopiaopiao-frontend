@@ -92,17 +92,44 @@
     min-height: 56px;
 }
 
-/* 座位模板表格列宽 */
+/* 座位模板表格列宽 - 9列：ID, 模板名称, 模板编码, 关联场馆, 布局类型, 座位数, 状态, 创建时间, 操作 */
 .admin-table .col-id {
-    flex: 0 0 40px;
+    flex: 0 0 50px;
     justify-content: center;
 }
 
 .admin-table .col-name {
     flex: 3;
-    min-width: 200px;
+    min-width: 180px;
     justify-content: flex-start;
     padding-left: 16px;
+}
+
+.admin-table .col-code {
+    flex: 0 0 120px;
+}
+
+.admin-table .col-venue {
+    flex: 1.5;
+    min-width: 120px;
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+.admin-table .col-layout {
+    flex: 0 0 90px;
+}
+
+.admin-table .col-seats {
+    flex: 0 0 80px;
+}
+
+.admin-table .col-status {
+    flex: 0 0 70px;
+}
+
+.admin-table .col-created {
+    flex: 0 0 110px;
 }
 
 .admin-table .col-action {
@@ -123,9 +150,11 @@
     justify-content: flex-start;
 }
 
-/* 名称列左对齐 */
+/* 左对齐的列：模板名称、关联场馆 */
 .admin-table th.col-name,
-.admin-table td.col-name {
+.admin-table td.col-name,
+.admin-table th.col-venue,
+.admin-table td.col-venue {
     text-align: left;
     justify-content: flex-start;
     padding-left: 16px;

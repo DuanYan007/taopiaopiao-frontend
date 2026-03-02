@@ -126,12 +126,12 @@ function renderTable(templates) {
         <tr>
             <td class="col-id">${template.id}</td>
             <td class="col-name">${escapeHtml(template.name)}</td>
-            <td><code style="font-size: 12px; background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">${escapeHtml(template.templateCode)}</code></td>
-            <td>${escapeHtml(template.venueName || '-')}</td>
-            <td><span class="badge ${layoutTypeInfo.class}">${layoutTypeInfo.text}</span></td>
-            <td>${template.totalSeats || 0} 座</td>
-            <td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
-            <td>${formatDate(template.createdAt)}</td>
+            <td class="col-code"><code style="font-size: 12px; background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">${escapeHtml(template.templateCode)}</code></td>
+            <td class="col-venue">${escapeHtml(template.venueName || '-')}</td>
+            <td class="col-layout"><span class="badge ${layoutTypeInfo.class}">${layoutTypeInfo.text}</span></td>
+            <td class="col-seats">${template.totalSeats || 0} 座</td>
+            <td class="col-status"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>
+            <td class="col-created">${formatDate(template.createdAt)}</td>
             <td class="col-action">
                 <div class="action-buttons">
                     <button class="action-btn action-btn-view" onclick="viewTemplate(${template.id})">查看</button>

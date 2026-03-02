@@ -22,7 +22,8 @@
       "Bash(awk:*)",
       "Bash(powershell:*)",
       "Bash(del:*)",
-      "Bash(dir \"G:\\\\project\\\\taopiaopiao-frontend\\\\frontend-client\")"
+      "Bash(dir \"G:\\\\project\\\\taopiaopiao-frontend\\\\frontend-client\")",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

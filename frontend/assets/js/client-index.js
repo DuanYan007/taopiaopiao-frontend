@@ -24,8 +24,33 @@ if (document.readyState === 'loading') {
 
 function init() {
     console.log('init() 函数执行');
+    updateUserInfo();
     initFilterButtons();
     loadEventList();
+}
+
+/**
+ * 更新用户信息显示
+ */
+function updateUserInfo() {
+    var userInfoDiv = document.querySelector('.user-info');
+    if (!userInfoDiv) return;
+
+    var user = getCurrentUser();
+    if (user) {
+        var avatar = document.createElement('div');
+        avatar.style.cssText = 'width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;';
+        avatar.textContent = user.nickname ? user.nickname.charAt(0) : '用';
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = user.nickname || '用户';
+
+        userInfoDiv.innerHTML = '';
+        userInfoDiv.appendChild(avatar);
+        userInfoDiv.appendChild(nameSpan);
+    } else {
+        userInfoDiv.innerHTML = '<a href="login.html" class="btn btn-outline btn-small">登录</a>';
+    }
 }
 
 /**
@@ -95,64 +120,128 @@ function loadEventList() {
         emptyState.style.display = 'none';
     }
 
-    // 构建请求 URL
-    var url = '/api/client/events?page=' + currentPage + '&pageSize=' + pageSize;
+    // 构建请求参数
+    var params = {
+        page: currentPage,
+        pageSize: pageSize
+    };
+
+    // 添加筛选条件
     if (currentFilter.category !== 'all') {
-        url += '&type=' + currentFilter.category;
+        params.type = currentFilter.category;
     }
 
-    console.log('请求 URL:', url);
+    if (currentFilter.sort === 'new') {
+        params.sortBy = 'createTime';
+        params.sortOrder = 'desc';
+    } else if (currentFilter.sort === 'soonest') {
+        params.sortBy = 'eventStartDate';
+        params.sortOrder = 'asc';
+    }
 
-    // 发送请求
-    fetch(url)
-        .then(function(response) {
-            console.log('响应状态:', response.status);
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
-            }
-            return response.json();
-        })
-        .then(function(data) {
-            console.log('响应数据:', data);
+    // 只显示在售状态的演出
+    params.status = 'on_sale';
 
-            // 隐藏加载状态
-            if (loadingState) {
-                loadingState.style.display = 'none';
-            }
+    console.log('请求参数:', params);
 
-            // 检查返回码
-            if (data.code !== 200) {
-                throw new Error(data.msg || '请求失败');
-            }
+    // 使用封装好的API函数
+    if (typeof getEventList === 'function') {
+        getEventList(params)
+            .then(function(result) {
+                console.log('API响应:', result);
 
-            var eventList = data.data.list || [];
-            totalPages = Math.ceil((data.data.total || 0) / pageSize);
+                // 隐藏加载状态
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
 
-            console.log('演出数量:', eventList.length);
+                var eventList = result.list || result.data || [];
+                totalPages = Math.ceil((result.total || 0) / pageSize);
 
-            if (eventList.length === 0) {
+                console.log('演出数量:', eventList.length);
+
+                if (eventList.length === 0) {
+                    if (emptyState) {
+                        emptyState.style.display = 'block';
+                    }
+                    return;
+                }
+
+                renderEvents(eventList);
+            })
+            .catch(function(error) {
+                console.error('请求失败:', error);
+
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
                 if (emptyState) {
                     emptyState.style.display = 'block';
+                    var emptyText = emptyState.querySelector('.empty-state-text');
+                    if (emptyText) {
+                        emptyText.textContent = '加载失败: ' + error.message;
+                    }
                 }
-                return;
-            }
+            });
+    } else {
+        // 如果API函数未加载，使用原生fetch
+        var queryString = Object.keys(params).map(function(key) {
+            return key + '=' + encodeURIComponent(params[key]);
+        }).join('&');
 
-            renderEvents(eventList);
-        })
-        .catch(function(error) {
-            console.error('请求失败:', error);
+        var url = '/api/client/events?' + queryString;
+        console.log('请求 URL:', url);
 
-            if (loadingState) {
-                loadingState.style.display = 'none';
-            }
-            if (emptyState) {
-                emptyState.style.display = 'block';
-                var emptyText = emptyState.querySelector('.empty-state-text');
-                if (emptyText) {
-                    emptyText.textContent = '加载失败: ' + error.message;
+        fetch(url)
+            .then(function(response) {
+                console.log('响应状态:', response.status);
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
                 }
-            }
-        });
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('响应数据:', data);
+
+                // 隐藏加载状态
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
+
+                // 检查返回码
+                if (data.code !== 200) {
+                    throw new Error(data.msg || '请求失败');
+                }
+
+                var eventList = data.data.list || [];
+                totalPages = Math.ceil((data.data.total || 0) / pageSize);
+
+                console.log('演出数量:', eventList.length);
+
+                if (eventList.length === 0) {
+                    if (emptyState) {
+                        emptyState.style.display = 'block';
+                    }
+                    return;
+                }
+
+                renderEvents(eventList);
+            })
+            .catch(function(error) {
+                console.error('请求失败:', error);
+
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                    var emptyText = emptyState.querySelector('.empty-state-text');
+                    if (emptyText) {
+                        emptyText.textContent = '加载失败: ' + error.message;
+                    }
+                }
+            });
+    }
 }
 
 /**
@@ -195,7 +284,7 @@ function renderEvents(events) {
  * 创建演出卡片
  */
 function createEventCard(event) {
-    var priceRange = getPriceRange(event.ticketTiers);
+    var priceRange = getPriceRangeFromEvent(event);
     var typeText = getTypeText(event.type);
     var gradient = getTypeGradient(event.type);
 
@@ -208,50 +297,71 @@ function createEventCard(event) {
 
     card.onclick = handleClick;
 
-    var soldOutBadge = event.status === 'sold_out'
-        ? '<div class="event-badge badge-danger">售罄</div>'
-        : '';
+    // 使用封面图（如果有）或渐变色
+    var coverStyle = event.coverImage
+        ? 'background-image: url(' + event.coverImage + '); background-size: cover; background-position: center;'
+        : 'background: ' + gradient;
 
     card.innerHTML =
-        '<div class="event-cover" style="background: ' + gradient + '; height: 200px;">' +
-            soldOutBadge +
+        '<div class="event-cover" style="' + coverStyle + '; height: 200px;">' +
         '</div>' +
         '<div class="event-info">' +
             '<div class="event-title">' + event.name + '</div>' +
             '<div class="event-meta">' +
-                '<span>' + (event.city || '上海') + '</span>' +
+                '<span>' + (event.city || '全国') + '</span>' +
                 '<span>|</span>' +
                 '<span>' + typeText + '</span>' +
             '</div>' +
             '<div class="event-time">' + formatDate(event.eventStartDate) + '</div>' +
-            '<div class="event-price">' + priceRange + '起</div>' +
+            '<div class="event-price">' + priceRange + '</div>' +
         '</div>';
 
     return card;
 }
 
 /**
- * 获取价格区间
+ * 从演出对象获取价格区间
+ * 新API中票档信息在座位模板中
  */
-function getPriceRange(ticketTiers) {
-    if (!ticketTiers || ticketTiers.length === 0) return '-';
+function getPriceRangeFromEvent(event) {
+    // 如果有座位模板信息，计算价格区间
+    if (event.seatTemplates && event.seatTemplates.length > 0) {
+        var allPrices = [];
+        for (var i = 0; i < event.seatTemplates.length; i++) {
+            var template = event.seatTemplates[i];
+            if (template.areas) {
+                for (var j = 0; j < template.areas.length; j++) {
+                    var area = template.areas[j];
+                    if (area.price) {
+                        allPrices.push(area.price);
+                    }
+                }
+            }
+        }
 
-    var prices = [];
-    for (var i = 0; i < ticketTiers.length; i++) {
-        if (ticketTiers[i].price != null) {
-            prices.push(ticketTiers[i].price);
+        if (allPrices.length > 0) {
+            var minPrice = Math.min.apply(null, allPrices);
+            var maxPrice = Math.max.apply(null, allPrices);
+            return minPrice === maxPrice ? '¥' + minPrice : '¥' + minPrice + '起';
         }
     }
 
-    if (prices.length === 0) return '-';
-
-    var minPrice = Math.min.apply(null, prices);
-    var maxPrice = Math.max.apply(null, prices);
-
-    if (minPrice === maxPrice) {
-        return '¥' + minPrice;
+    // 兼容旧数据结构（如果有ticketTiers）
+    if (event.ticketTiers && event.ticketTiers.length > 0) {
+        var prices = [];
+        for (var i = 0; i < event.ticketTiers.length; i++) {
+            if (event.ticketTiers[i].price != null) {
+                prices.push(event.ticketTiers[i].price);
+            }
+        }
+        if (prices.length > 0) {
+            var min = Math.min.apply(null, prices);
+            var max = Math.max.apply(null, prices);
+            return min === max ? '¥' + min : '¥' + min + '起';
+        }
     }
-    return '¥' + minPrice + ' - ¥' + maxPrice;
+
+    return '价格待定';
 }
 
 /**
@@ -267,7 +377,7 @@ function getTypeText(type) {
         'kids': '儿童亲子',
         'dance': '舞蹈芭蕾'
     };
-    return map[type] || type;
+    return map[type] || type || '演出';
 }
 
 /**
@@ -290,7 +400,7 @@ function getTypeGradient(type) {
  * 格式化日期
  */
 function formatDate(dateStr) {
-    if (!dateStr) return '-';
+    if (!dateStr) return '待定';
 
     var date = new Date(dateStr);
     var year = date.getFullYear();

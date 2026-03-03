@@ -23,11 +23,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     const title = document.querySelector('.admin-header-title');
     title.textContent = sessionId ? (isReadonly ? '查看场次' : '编辑场次') : '新建场次';
 
-    // 加载场馆列表
-    await loadVenues();
-
     // 加载演出列表（用于选择）
     await loadEvents();
+
+    // 加载座位模板列表
+    await loadSeatTemplates();
 
     // 如果是只读模式，禁用表单
     if (isReadonly) {
@@ -58,14 +58,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const cancelBtn = document.getElementById('cancelBtn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
-            window.location.href = 'admin-sessions.html?eventId=' + eventId;
+            window.location.href = 'admin-sessions.html';
         });
-    }
-
-    // 绑定预览按钮
-    const previewBtn = document.getElementById('previewBtn');
-    if (previewBtn) {
-        previewBtn.addEventListener('click', previewSession);
     }
 
     // 绑定表单提交
@@ -74,59 +68,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         sessionForm.addEventListener('submit', handleFormSubmit);
     }
 
-    // 绑定场馆选择变更
-    const venueSelect = document.getElementById('venueId');
-    if (venueSelect) {
-        venueSelect.addEventListener('change', handleVenueChange);
-    }
-
-    // 绑定重新加载票档按钮
-    const reloadTiersBtn = document.getElementById('reloadTiersBtn');
-    if (reloadTiersBtn) {
-        reloadTiersBtn.addEventListener('click', () => {
-            loadEventData();
-            alert('票档已重新加载');
-        });
-    }
-
-    // 绑定自定义价格切换
-    const useCustomPricingCheckbox = document.getElementById('useCustomPricing');
-    if (useCustomPricingCheckbox) {
-        useCustomPricingCheckbox.addEventListener('change', toggleCustomPricing);
+    // 绑定座位模板选择变更
+    const seatTemplateSelect = document.getElementById('seatTemplateId');
+    if (seatTemplateSelect) {
+        seatTemplateSelect.addEventListener('change', handleSeatTemplateChange);
     }
 });
-
-/**
- * 加载场馆列表
- */
-async function loadVenues() {
-    try {
-        const result = await get('/api/admin/venues/all');
-        const venueList = result.list || result.data || result || [];
-
-        console.log('场馆列表数据:', venueList);
-
-        const venueSelect = document.getElementById('venueId');
-        if (!venueSelect) return;
-
-        const currentValue = venueSelect.value;
-        venueSelect.innerHTML = '<option value="">请选择场馆</option>';
-
-        venueList.forEach(venue => {
-            const option = document.createElement('option');
-            option.value = venue.id;
-            option.textContent = venue.name;
-            option.dataset.address = venue.address || '';
-            venueSelect.appendChild(option);
-        });
-
-        if (currentValue) {
-            venueSelect.value = currentValue;
-        }
-    } catch (error) {
-        console.error('加载场馆列表失败:', error);
-    }
-}
 
 /**
  * 加载演出列表
@@ -151,7 +98,6 @@ async function loadEvents() {
             option.textContent = event.name;
             option.dataset.type = event.type || '';
             option.dataset.city = event.city || '';
-            option.dataset.venue = event.venueName || '';
             eventSelect.appendChild(option);
         });
 
@@ -166,13 +112,45 @@ async function loadEvents() {
                 } else {
                     // 清空演出信息
                     document.getElementById('eventDetails').style.display = 'none';
-                    document.getElementById('ticketTiersContainer').innerHTML =
-                        '<div class="text-center text-muted" style="padding: 40px;">请先选择演出</div>';
                 }
             });
         }
     } catch (error) {
         console.error('加载演出列表失败:', error);
+    }
+}
+
+/**
+ * 加载座位模板列表
+ */
+async function loadSeatTemplates() {
+    try {
+        const result = await get('/api/admin/seat-templates', { pageSize: 1000, status: 1 });
+        const templateList = result.records || result.list || result.data || [];
+
+        console.log('座位模板列表数据:', templateList);
+
+        const seatTemplateSelect = document.getElementById('seatTemplateId');
+        if (!seatTemplateSelect) return;
+
+        const currentValue = seatTemplateSelect.value;
+        seatTemplateSelect.innerHTML = '<option value="">请选择座位模板</option>';
+
+        templateList.forEach(template => {
+            const option = document.createElement('option');
+            option.value = template.id;
+            option.textContent = template.name;
+            option.dataset.seats = template.totalSeats || 0;
+            option.dataset.venueName = template.venueName || '';
+            seatTemplateSelect.appendChild(option);
+        });
+
+        if (currentValue) {
+            seatTemplateSelect.value = currentValue;
+            handleSeatTemplateChange();
+        }
+    } catch (error) {
+        console.error('加载座位模板列表失败:', error);
     }
 }
 
@@ -194,14 +172,6 @@ async function loadEventData() {
 
         // 更新演出信息展示
         updateEventInfoDisplay(eventData);
-
-        // 渲染票档列表（继承自演出）
-        if (eventData.ticketTiers && eventData.ticketTiers.length > 0) {
-            renderInheritedTicketTiers(eventData.ticketTiers);
-        } else {
-            document.getElementById('ticketTiersContainer').innerHTML =
-                '<div class="text-center text-muted" style="padding: 40px;">该演出暂未配置票档，请先在演出管理中添加票档</div>';
-        }
     } catch (error) {
         console.error('加载演出数据失败:', error);
         alert('加载演出数据失败: ' + error.msg);
@@ -220,9 +190,6 @@ async function loadSessionData() {
         eventId = sessionData.eventId;
         document.getElementById('eventId').value = eventId;
 
-        // 先加载演出列表
-        await loadEvents();
-
         // 设置演出下拉框的值
         const eventSelect = document.getElementById('eventSelect');
         if (eventSelect) {
@@ -236,58 +203,38 @@ async function loadSessionData() {
         setFormValue('sessionName', sessionData.sessionName);
 
         // 回填时间信息
-        if (sessionData.startTime) {
-            const startDate = new Date(sessionData.startTime);
-            setFormValue('sessionDate', formatDateForInput(startDate));
-            setFormValue('startTime', formatTimeForInput(startDate));
-        }
-        if (sessionData.endTime) {
-            setFormValue('endTime', formatTimeForInput(new Date(sessionData.endTime)));
-        }
+        setFormValue('startTime', formatDateTimeLocal(sessionData.startTime));
+        setFormValue('endTime', formatDateTimeLocal(sessionData.endTime));
 
-        // 回填场馆信息
-        setFormValue('venueId', sessionData.venueId);
-        setFormValue('hallName', sessionData.hallName);
+        // 回填地址
         setFormValue('address', sessionData.address);
 
-        // 回填座位信息
-        setFormValue('totalSeats', sessionData.totalSeats);
-        setFormValue('availableSeats', sessionData.availableSeats);
+        // 回填座位模板
+        setFormValue('seatTemplateId', sessionData.seatTemplateId);
+        handleSeatTemplateChange();
 
-        // 回填票档配置
-        if (sessionData.ticketTierConfig && sessionData.ticketTierConfig.length > 0) {
-            fillTicketTierConfig(sessionData.ticketTierConfig);
+        // 回填选座方式
+        const metadata = sessionData.metadata || {};
+        if (metadata.seatSelectionMode) {
+            setFormValue('seatSelectionMode', metadata.seatSelectionMode);
         }
 
         // 回填销售设置
-        const metadata = sessionData.metadata || {};
-        setFormValue('metadata[duration]', metadata.duration);
-        setFormValue('metadata[saleStartTime]', formatDateTimeLocal(metadata.saleStartTime));
-        setFormValue('metadata[saleEndTime]', formatDateTimeLocal(metadata.saleEndTime));
+        setFormValue('saleStartTime', formatDateTimeLocal(metadata.saleStartTime));
+        setFormValue('saleEndTime', formatDateTimeLocal(metadata.saleEndTime));
 
         // 回填特殊限制
-        if (metadata.requireRealName) setFormValue('metadata[requireRealName]', 'on');
-        if (metadata.limitOnePerPerson) setFormValue('metadata[limitOnePerPerson]', 'on');
-        if (metadata.noRefund) setFormValue('metadata[noRefund]', 'on');
+        if (metadata.requireRealName) setFormValue('requireRealName', 'on');
+        if (metadata.limitOnePerPerson) setFormValue('limitOnePerPerson', 'on');
+        if (metadata.noRefund) setFormValue('noRefund', 'on');
 
-        // 回填选座方式
-        if (metadata.seatSelectionMode) {
-            setFormValue('metadata[seatSelectionMode]', metadata.seatSelectionMode);
-        }
+        // 回填扩展设置
+        setFormValue('duration', metadata.duration || 120);
+        setFormValue('sortOrder', metadata.sortOrder || 100);
+        setFormValue('remark', metadata.remark || '');
 
         // 回填状态
         setFormValue('status', sessionData.status);
-
-        // 回填排序和备注
-        setFormValue('metadata[sortOrder]', metadata.sortOrder || 0);
-        setFormValue('metadata[remark]', metadata.remark || '');
-
-        // 检查是否使用自定义价格
-        const hasCustomPrice = sessionData.ticketTierConfig?.some(tier => tier.overridePrice !== null && tier.overridePrice !== undefined);
-        if (hasCustomPrice) {
-            document.getElementById('useCustomPricing').checked = true;
-            toggleCustomPricing();
-        }
     } catch (error) {
         console.error('加载场次数据失败:', error);
         alert('加载场次数据失败: ' + error.msg);
@@ -311,137 +258,41 @@ function updateEventInfoDisplay(event) {
     eventName.textContent = event.name;
 
     // 更新演出信息
+    const typeMap = {
+        concert: '演唱会',
+        theatre: '话剧歌剧',
+        exhibition: '展览休闲',
+        sports: '体育',
+        kids: '儿童亲子',
+        music: '音乐会',
+        dance: '舞蹈芭蕾'
+    };
+
     eventInfo.innerHTML = `
-        <span>${event.type || '-'}</span>
+        <span>${typeMap[event.type] || event.type || '-'}</span>
         <span style="margin: 0 8px; color: #ddd;">|</span>
         <span>${event.city || '-'}</span>
-        <span style="margin: 0 8px; color: #ddd;">|</span>
-        <span>${event.venueName || '-'}</span>
         <span style="margin: 0 8px; color: #ddd;">|</span>
         <a href="admin-event-edit.html?id=${event.id}" target="_blank" style="color: #1976d2;">查看演出详情 →</a>
     `;
 }
 
 /**
- * 渲染继承的票档列表
+ * 座位模板选择变更处理
  */
-function renderInheritedTicketTiers(tiers) {
-    const container = document.getElementById('ticketTiersContainer');
-    if (!container) return;
+function handleSeatTemplateChange() {
+    const seatTemplateSelect = document.getElementById('seatTemplateId');
+    const selectedOption = seatTemplateSelect.selectedOptions[0];
+    const seatTemplateInfo = document.getElementById('seatTemplateInfo');
+    const templateName = document.getElementById('templateName');
+    const totalSeats = document.getElementById('totalSeats');
 
-    container.innerHTML = `
-        <div style="background: #f5f5f5; padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 600;">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 16px;">
-                <div>票档名称</div>
-                <div>演出价格</div>
-                <div>座位分配数</div>
-                <div>可售座位数</div>
-                <div>限购数</div>
-            </div>
-        </div>
-    `;
-
-    tiers.forEach((tier, index) => {
-        const tierHtml = `
-            <div style="padding: 16px; border-bottom: 1px solid #eee; background: ${index % 2 === 0 ? '#fff' : '#fafafa'};" id="tierRow_${index}">
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 16px; align-items: center;">
-                    <div>
-                        <div style="font-weight: 500;">${tier.name}</div>
-                        <div class="text-small text-muted">${tier.description || ''}</div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; color: #f44336;">¥${tier.price}</div>
-                        <input type="hidden" name="ticket_tiers[${index}].tierId" value="${tier.id}">
-                        <input type="hidden" name="ticket_tiers[${index}].basePrice" value="${tier.price}">
-                        <input type="number" class="form-input custom-price-input" name="ticket_tiers[${index}].overridePrice"
-                               placeholder="自定义价格" step="0.01" style="margin-top: 8px; display: none;">
-                    </div>
-                    <div>
-                        <input type="number" class="form-input" name="ticket_tiers[${index}].seatCount"
-                               placeholder="座位数" min="0" value="${tier.maxSeats || 0}">
-                        <div class="text-small text-muted" style="margin-top: 4px;">该票档总座位</div>
-                    </div>
-                    <div>
-                        <input type="number" class="form-input" name="ticket_tiers[${index}].availableSeats"
-                               placeholder="可售数" min="0" value="${tier.availableSeats || tier.maxSeats || 0}">
-                    </div>
-                    <div>
-                        <input type="number" class="form-input" name="ticket_tiers[${index}].maxPurchase"
-                               placeholder="限购" min="1" value="${tier.maxPurchase || 4}">
-                    </div>
-                </div>
-                <div style="margin-top: 12px;">
-                    <label style="margin-right: 16px; cursor: pointer;">
-                        <input type="checkbox" name="ticket_tiers[${index}].enabled" checked> 启用该票档
-                    </label>
-                </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', tierHtml);
-    });
-}
-
-/**
- * 填充票档配置（编辑模式）
- */
-function fillTicketTierConfig(config) {
-    config.forEach(tierConfig => {
-        const tierId = tierConfig.tierId;
-        const tierRow = document.querySelector(`input[value="${tierId}"]`)?.closest('[id^="tierRow_"]');
-        if (!tierRow) return;
-
-        // 填充座位数
-        const seatCountInput = tierRow.querySelector('[name$=".seatCount"]');
-        if (seatCountInput) seatCountInput.value = tierConfig.seatCount || 0;
-
-        // 填充可售数
-        const availableSeatsInput = tierRow.querySelector('[name$=".availableSeats"]');
-        if (availableSeatsInput) availableSeatsInput.value = tierConfig.availableSeats || 0;
-
-        // 填充限购数
-        const maxPurchaseInput = tierRow.querySelector('[name$=".maxPurchase"]');
-        if (maxPurchaseInput) maxPurchaseInput.value = tierConfig.maxPurchase || 4;
-
-        // 填充自定义价格
-        if (tierConfig.overridePrice !== null && tierConfig.overridePrice !== undefined) {
-            const overridePriceInput = tierRow.querySelector('[name$=".overridePrice"]');
-            if (overridePriceInput) overridePriceInput.value = tierConfig.overridePrice;
-        }
-
-        // 设置启用状态
-        const enabledCheckbox = tierRow.querySelector('[name$=".enabled"]');
-        if (enabledCheckbox) enabledCheckbox.checked = tierConfig.enabled !== false;
-    });
-}
-
-/**
- * 切换自定义价格
- */
-function toggleCustomPricing() {
-    const useCustomPricing = document.getElementById('useCustomPricing').checked;
-    const customPriceInputs = document.querySelectorAll('.custom-price-input');
-
-    customPriceInputs.forEach(input => {
-        input.style.display = useCustomPricing ? 'block' : 'none';
-        if (!useCustomPricing) {
-            input.value = ''; // 清空自定义价格
-        }
-    });
-}
-
-/**
- * 场馆选择变更处理
- */
-function handleVenueChange() {
-    const venueSelect = document.getElementById('venueId');
-    const selectedOption = venueSelect.selectedOptions[0];
-
-    if (selectedOption && selectedOption.dataset.address) {
-        // 自动填充地址
-        const addressInput = document.getElementById('address');
-        if (addressInput && !addressInput.value) {
-            addressInput.value = selectedOption.dataset.address;
-        }
+    if (selectedOption && selectedOption.value) {
+        seatTemplateInfo.style.display = 'block';
+        templateName.textContent = selectedOption.textContent;
+        totalSeats.textContent = selectedOption.dataset.seats || '0';
+    } else {
+        seatTemplateInfo.style.display = 'none';
     }
 }
 
@@ -450,23 +301,13 @@ function handleVenueChange() {
  */
 function initializeDefaultValues() {
     // 设置默认演出时长为120分钟
-    setFormValue('metadata[duration]', '120');
+    setFormValue('duration', '120');
+
+    // 设置默认排序权重
+    setFormValue('sortOrder', '100');
 
     // 设置默认选座方式
-    setFormValue('metadata[seatSelectionMode]', 'online');
-}
-
-/**
- * 预览场次
- */
-function previewSession() {
-    // 收集表单数据
-    const formData = new FormData(document.getElementById('sessionForm'));
-    const sessionName = formData.get('sessionName') || '未命名场次';
-    const sessionDate = formData.get('sessionDate');
-    const startTime = formData.get('startTime');
-
-    alert(`预览场次：${sessionName}\n时间：${sessionDate} ${startTime}\n\n预览功能开发中，敬请期待...`);
+    setFormValue('seatSelectionMode', 'online');
 }
 
 /**
@@ -485,86 +326,47 @@ async function handleFormSubmit(e) {
     try {
         const formData = new FormData(e.target);
 
-        // 组合日期和时间
-        const sessionDate = formData.get('sessionDate');
+        // 验证必填字段
+        if (!eventId) {
+            throw new Error('请选择所属演出');
+        }
+
         const startTime = formData.get('startTime');
         const endTime = formData.get('endTime');
+        const seatTemplateId = formData.get('seatTemplateId');
 
-        if (!sessionDate || !startTime) {
-            throw new Error('请选择场次日期和开始时间');
+        if (!startTime || !endTime) {
+            throw new Error('请选择场次开始时间和结束时间');
         }
 
-        // 构建开始时间
-        const startDateTime = `${sessionDate}T${startTime}:00`;
-
-        // 构建结束时间
-        let endDateTime = null;
-        if (endTime) {
-            endDateTime = `${sessionDate}T${endTime}:00`;
+        if (!seatTemplateId) {
+            throw new Error('请选择座位模板');
         }
 
-        // 收集票档配置
-        const ticketTierConfig = [];
-        const tierRows = document.querySelectorAll('[id^="tierRow_"]');
-        tierRows.forEach(row => {
-            const tierId = row.querySelector('[name$=".tierId"]')?.value;
-            const basePrice = parseFloat(row.querySelector('[name$=".basePrice"]')?.value);
-            const overridePrice = row.querySelector('[name$=".overridePrice"]')?.value;
-            const seatCount = parseInt(row.querySelector('[name$=".seatCount"]')?.value) || 0;
-            const availableSeats = parseInt(row.querySelector('[name$=".availableSeats"]')?.value) || 0;
-            const maxPurchase = parseInt(row.querySelector('[name$=".maxPurchase"]')?.value) || 4;
-            const enabled = row.querySelector('[name$=".enabled"]')?.checked !== false;
-
-            if (tierId) {
-                ticketTierConfig.push({
-                    tierId: parseInt(tierId),
-                    basePrice: basePrice,
-                    overridePrice: overridePrice ? parseFloat(overridePrice) : null,
-                    seatCount: seatCount,
-                    availableSeats: availableSeats,
-                    maxPurchase: maxPurchase,
-                    enabled: enabled
-                });
-            }
-        });
-
-        // 计算总座位数和可售座位数
-        const totalSeats = ticketTierConfig.reduce((sum, tier) => sum + tier.seatCount, 0);
-        const totalAvailableSeats = ticketTierConfig.reduce((sum, tier) => sum + (tier.enabled ? tier.availableSeats : 0), 0);
-
-        // 收集元数据
+        // 构建metadata
         const metadata = {
-            duration: formData.get('metadata[duration]') ? parseInt(formData.get('metadata[duration]')) : 120,
-            saleStartTime: formData.get('metadata[saleStartTime]') || null,
-            saleEndTime: formData.get('metadata[saleEndTime]') || null,
-            seatSelectionMode: formData.get('metadata[seatSelectionMode]') || 'online',
-            requireRealName: formData.get('metadata[requireRealName]') === 'on',
-            limitOnePerPerson: formData.get('metadata[limitOnePerPerson]') === 'on',
-            noRefund: formData.get('metadata[noRefund]') === 'on',
-            sortOrder: formData.get('metadata[sortOrder]') ? parseInt(formData.get('metadata[sortOrder]')) : 0,
-            remark: formData.get('metadata[remark]')?.trim() || ''
+            duration: formData.get('duration') ? parseInt(formData.get('duration')) : 120,
+            saleStartTime: formatDateTimeForAPI(formData.get('saleStartTime')),
+            saleEndTime: formatDateTimeForAPI(formData.get('saleEndTime')),
+            seatSelectionMode: formData.get('seatSelectionMode') || 'online',
+            requireRealName: formData.get('requireRealName') === 'on',
+            limitOnePerPerson: formData.get('limitOnePerPerson') === 'on',
+            noRefund: formData.get('noRefund') === 'on',
+            sortOrder: formData.get('sortOrder') ? parseInt(formData.get('sortOrder')) : 100,
+            remark: formData.get('remark')?.trim() || ''
         };
 
         // 构建完整数据对象
         const data = {
             eventId: parseInt(eventId),
             sessionName: formData.get('sessionName')?.trim(),
-            startTime: startDateTime,
-            endTime: endDateTime,
-            venueId: formData.get('venueId') ? parseInt(formData.get('venueId')) : null,
-            hallName: formData.get('hallName')?.trim() || '',
+            startTime: formatDateTimeForAPI(startTime),
+            endTime: formatDateTimeForAPI(endTime),
             address: formData.get('address')?.trim() || '',
-            totalSeats: totalSeats,
-            availableSeats: totalAvailableSeats,
-            ticketTierConfig: ticketTierConfig,
-            metadata: metadata,
-            status: formData.get('status') || 'not_started'
+            seatTemplateId: parseInt(seatTemplateId),
+            status: formData.get('status') || 'not_started',
+            metadata: metadata
         };
-
-        // 验证总座位数
-        if (data.totalSeats <= 0) {
-            throw new Error('请至少为一个票档分配座位数');
-        }
 
         console.log('提交数据:', data);
 
@@ -573,13 +375,12 @@ async function handleFormSubmit(e) {
             await put(`/api/admin/sessions/${sessionId}`, data);
             alert('更新成功');
         } else {
-            const result = await post('/api/admin/sessions', data);
+            await post('/api/admin/sessions', data);
             alert('创建成功');
-            sessionId = result.id;
         }
 
         // 返回列表页
-        window.location.href = 'admin-sessions.html?eventId=' + eventId;
+        window.location.href = 'admin-sessions.html';
     } catch (error) {
         console.error('保存失败:', error);
         alert('保存失败: ' + error.msg);
@@ -596,7 +397,7 @@ async function handleFormSubmit(e) {
  */
 function disableForm() {
     document.querySelectorAll('#sessionForm input, #sessionForm select, #sessionForm textarea, #sessionForm button').forEach(el => {
-        if (el.type !== 'hidden' && el.id !== 'cancelBtn' && el.id !== 'previewBtn') {
+        if (el.type !== 'hidden' && el.id !== 'cancelBtn') {
             el.disabled = true;
         }
     });
@@ -617,25 +418,6 @@ function setFormValue(name, value) {
 }
 
 /**
- * 辅助函数：格式化日期为 date input 格式
- */
-function formatDateForInput(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-/**
- * 辅助函数：格式化时间为 time input 格式
- */
-function formatTimeForInput(date) {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
-
-/**
  * 辅助函数：格式化日期时间为 datetime-local 格式
  */
 function formatDateTimeLocal(dateString) {
@@ -647,4 +429,14 @@ function formatDateTimeLocal(dateString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+/**
+ * 辅助函数：格式化datetime-local值为API需要的格式 (ISO 8601)
+ */
+function formatDateTimeForAPI(dateTimeLocalString) {
+    if (!dateTimeLocalString) return null;
+    // datetime-local格式: 2025-02-01T10:00
+    // API需要格式: 2025-02-01T10:00:00
+    return dateTimeLocalString + ':00';
 }

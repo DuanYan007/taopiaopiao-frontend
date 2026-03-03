@@ -111,7 +111,7 @@
                         <select class="form-select" id="eventSelect" required>
                             <option value="">请选择演出</option>
                         </select>
-                        <div class="text-small text-muted" style="margin-top: 4px;">选择演出后，系统将自动加载该演出的票档配置</div>
+                        <div class="text-small text-muted" style="margin-top: 4px;">选择演出后，系统将自动加载演出信息</div>
                     </div>
                     <!-- 演出详细信息展示区域（选择后显示） -->
                     <div id="eventDetails" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
@@ -135,40 +135,17 @@
                         </div>
                         <div class="admin-form-row">
                             <div class="form-group">
-                                <label class="form-label">场次日期 <span style="color: #d32f2f;">*</span></label>
-                                <input type="date" class="form-input" name="sessionDate" id="sessionDate" required>
+                                <label class="form-label">场次开始时间 <span style="color: #d32f2f;">*</span></label>
+                                <input type="datetime-local" class="form-input" name="startTime" id="startTime" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">开始时间 <span style="color: #d32f2f;">*</span></label>
-                                <input type="time" class="form-input" name="startTime" id="startTime" required>
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">预计结束时间</label>
-                                <input type="time" class="form-input" name="endTime" id="endTime">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">演出时长（分钟）</label>
-                                <input type="number" class="form-input" name="metadata[duration]" id="duration" placeholder="请输入演出时长" min="1" value="120">
-                            </div>
-                        </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">场馆 <span style="color: #d32f2f;">*</span></label>
-                                <select class="form-select" name="venueId" id="venueId" required>
-                                    <option value="">请选择场馆</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">馆厅名称</label>
-                                <input type="text" class="form-input" name="hallName" id="hallName" placeholder="如：主体育场、A馆、B馆">
+                                <label class="form-label">场次结束时间 <span style="color: #d32f2f;">*</span></label>
+                                <input type="datetime-local" class="form-input" name="endTime" id="endTime" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">详细地址</label>
-                            <input type="text" class="form-input" name="address" id="address" placeholder="场馆地址，可覆盖默认地址">
-                            <div class="text-small text-muted" style="margin-top: 4px;">选择场馆后自动填充，可修改</div>
+                            <input type="text" class="form-input" name="address" id="address" placeholder="演出举办地址">
                         </div>
                     </div>
 
@@ -176,60 +153,29 @@
                     <div class="admin-form-section">
                         <div class="admin-form-section-title">座位设置</div>
                         <div class="form-group">
-                            <label class="form-label">座位图模板</label>
-                            <div style="border: 2px dashed #ddd; border-radius: 4px; padding: 32px; text-align: center; cursor: pointer; background: #fafafa;" id="seatMapUpload">
-                                <div style="font-size: 48px; margin-bottom: 12px;">💺</div>
-                                <div style="color: #666; margin-bottom: 8px;">点击选择座位图模板</div>
-                                <div class="text-small text-muted">或上传自定义座位图（支持 SVG 格式）</div>
-                            </div>
-                            <input type="hidden" name="seatMapConfig" id="seatMapConfig">
+                            <label class="form-label">座位模板 <span style="color: #d32f2f;">*</span></label>
+                            <select class="form-select" name="seatTemplateId" id="seatTemplateId" required>
+                                <option value="">请选择座位模板</option>
+                            </select>
+                            <div class="text-small text-muted" style="margin-top: 4px;">选择座位模板后，座位数将自动从模板中获取</div>
                         </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">总座位数 <span style="color: #d32f2f;">*</span></label>
-                                <input type="number" class="form-input" name="totalSeats" id="totalSeats" placeholder="请输入总座位数" min="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">可售座位数</label>
-                                <input type="number" class="form-input" name="availableSeats" id="availableSeats" placeholder="请输入可售座位数" min="1">
-                                <div class="text-small text-muted" style="margin-top: 4px;">扣除工作席位、保留席等</div>
+                        <div id="seatTemplateInfo" style="display: none; margin-top: 12px; padding: 12px; background: #f5f5f5; border-radius: 4px;">
+                            <div class="text-small text-muted">模板信息</div>
+                            <div id="templateName" style="font-weight: 500;"></div>
+                            <div class="text-small" style="color: #666;">
+                                总座位数：<span id="totalSeats">0</span> 座
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">选座方式</label>
                             <div style="padding: 8px 0;">
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="radio" name="metadata[seatSelectionMode]" value="online" checked> 在线选座
+                                    <input type="radio" name="seatSelectionMode" value="online" checked> 在线选座
                                 </label>
                                 <label style="cursor: pointer;">
-                                    <input type="radio" name="metadata[seatSelectionMode]" value="auto"> 系统自动分配
+                                    <input type="radio" name="seatSelectionMode" value="auto"> 系统自动分配
                                 </label>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- 票档配置（继承自演出） -->
-                    <div class="admin-form-section">
-                        <div class="admin-form-section-title">票档配置（继承自演出）</div>
-                        <div class="text-small text-muted" style="margin-bottom: 16px;">
-                            票档继承自演出配置，您可以调整每个票档在该场次的座位分配数、限购数等。
-                            <span style="color: #1976d2;">票价继承自演出，如需修改请勾选"自定义价格"</span>
-                        </div>
-
-                        <!-- 继承模式切换 -->
-                        <div class="form-group" style="margin-bottom: 16px;">
-                            <label style="margin-right: 24px; cursor: pointer;">
-                                <input type="checkbox" id="useCustomPricing"> 启用自定义价格（覆盖演出票价）
-                            </label>
-                        </div>
-
-                        <!-- 票档列表容器 -->
-                        <div id="ticketTiersContainer" style="border: 1px solid #eee; border-radius: 4px; overflow: hidden;">
-                            <div class="text-center text-muted" style="padding: 40px;">加载中...</div>
-                        </div>
-
-                        <div style="margin-top: 16px;">
-                            <button type="button" class="btn btn-secondary btn-small" id="reloadTiersBtn">🔄 重新加载票档</button>
                         </div>
                     </div>
 
@@ -238,28 +184,48 @@
                         <div class="admin-form-section-title">销售设置</div>
                         <div class="admin-form-row">
                             <div class="form-group">
-                                <label class="form-label">开售时间 <span style="color: #d32f2f;">*</span></label>
-                                <input type="datetime-local" class="form-input" name="metadata[saleStartTime]" id="saleStartTime" required>
+                                <label class="form-label">开售时间</label>
+                                <input type="datetime-local" class="form-input" name="saleStartTime" id="saleStartTime">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">停售时间</label>
-                                <input type="datetime-local" class="form-input" name="metadata[saleEndTime]" id="saleEndTime">
-                                <div class="text-small text-muted" style="margin-top: 4px;">默认为演出开始前2小时</div>
+                                <input type="datetime-local" class="form-input" name="saleEndTime" id="saleEndTime">
+                                <div class="text-small text-muted" style="margin-top: 4px;">默认为场次开始时间</div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">特殊购票限制</label>
                             <div style="padding: 8px 0;">
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="checkbox" name="metadata[requireRealName]" id="requireRealName"> 实名制购票
+                                    <input type="checkbox" name="requireRealName" id="requireRealName"> 实名制购票
                                 </label>
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="checkbox" name="metadata[limitOnePerPerson]" id="limitOnePerPerson"> 每人限购1张
+                                    <input type="checkbox" name="limitOnePerPerson" id="limitOnePerPerson"> 每人限购1张
                                 </label>
                                 <label style="cursor: pointer;">
-                                    <input type="checkbox" name="metadata[noRefund]" id="noRefund"> 禁止退票
+                                    <input type="checkbox" name="noRefund" id="noRefund"> 禁止退票
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- 扩展设置 -->
+                    <div class="admin-form-section">
+                        <div class="admin-form-section-title">扩展设置</div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label class="form-label">演出时长（分钟）</label>
+                                <input type="number" class="form-input" name="duration" id="duration" placeholder="请输入演出时长" min="1" value="120">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">排序权重</label>
+                                <input type="number" class="form-input" name="sortOrder" id="sortOrder" placeholder="数字越大排序越靠前" value="100">
+                                <div class="text-small text-muted" style="margin-top: 4px;">用于在场次列表中排序显示</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-textarea" name="remark" id="remark" placeholder="内部备注信息" rows="3"></textarea>
                         </div>
                     </div>
 
@@ -270,7 +236,7 @@
                             <label class="form-label">场次状态</label>
                             <div style="padding: 8px 0;">
                                 <label style="margin-right: 24px; cursor: pointer;">
-                                    <input type="radio" name="status" value="not_started" checked> 草稿
+                                    <input type="radio" name="status" value="not_started" checked> 未开始
                                 </label>
                                 <label style="margin-right: 24px; cursor: pointer;">
                                     <input type="radio" name="status" value="on_sale"> 立即开售
@@ -280,23 +246,11 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="admin-form-row">
-                            <div class="form-group">
-                                <label class="form-label">排序权重</label>
-                                <input type="number" class="form-input" name="metadata[sortOrder]" id="sortOrder" placeholder="数字越大排序越靠前" value="0">
-                                <div class="text-small text-muted" style="margin-top: 4px;">用于在场次列表中排序显示</div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">备注</label>
-                                <input type="text" class="form-input" name="metadata[remark]" id="remark" placeholder="内部备注信息">
-                            </div>
-                        </div>
                     </div>
 
                     <!-- 表单操作按钮 -->
                     <div class="admin-form-actions">
                         <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
-                        <button type="button" class="btn btn-secondary" id="previewBtn">预览场次页</button>
                         <button type="submit" class="btn btn-primary" id="submitBtn">发布场次</button>
                     </div>
                 </form>

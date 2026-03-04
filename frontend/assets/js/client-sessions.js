@@ -35,5 +35,14 @@ async function getSessionDetail(id) {
     return clientGet(`${SESSIONS_BASE_URL}/${id}`);
 }
 
+/**
+ * 获取场次的座位列表
+ * @param {number} sessionId - 场次ID
+ * @returns {Promise<object>} 座位列表 { sessionId, seats: [] }
+ */
+async function getSessionSeats(sessionId) {
+    return clientGet(`${SESSIONS_BASE_URL}/${sessionId}/seats`);
+}
+
 // 导出函数（如果使用模块化）
-// export { getSessionList, getSessionDetail };
+// export { getSessionList, getSessionDetail, getSessionSeats };

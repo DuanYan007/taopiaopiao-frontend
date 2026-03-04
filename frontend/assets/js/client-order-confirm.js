@@ -10,6 +10,7 @@ let eventId = null;
 let sessionData = null;
 let selectedSeats = [];
 let totalPrice = 0;
+let lockId = null;
 
 /**
  * 页面初始化
@@ -20,12 +21,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 更新用户信息显示
     updateUserInfo();
 
+    // 从 URL 参数获取 lockId
+    const urlParams = new URLSearchParams(window.location.search);
+    lockId = urlParams.get('lockId');
+
     // 从 sessionStorage 获取选座信息
     const storedSessionId = sessionStorage.getItem('sessionId');
     const storedSeats = sessionStorage.getItem('selectedSeats');
     const storedEventId = sessionStorage.getItem('eventId');
     const storedSessionData = sessionStorage.getItem('sessionData');
     const storedTotalPrice = sessionStorage.getItem('totalPrice');
+    const storedLockId = sessionStorage.getItem('lockId');
 
     if (!storedSessionId || !storedSeats) {
         showError('订单信息已过期，请重新选择座位');
@@ -40,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventId = storedEventId;
     selectedSeats = JSON.parse(storedSeats);
     totalPrice = parseFloat(storedTotalPrice) || 0;
+    lockId = lockId || storedLockId;
 
     if (storedSessionData) {
         try {
@@ -57,6 +64,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (payBtn) {
         payBtn.addEventListener('click', handlePayment);
     }
+
+    // 启动倒计时（15分钟）
+    startCountdown(900);
 });
 
 /**
@@ -195,9 +205,58 @@ function updatePriceBreakdown() {
 }
 
 /**
+ * 启动倒计时
+ */
+function startCountdown(seconds) {
+    let remaining = seconds;
+    const countdownEl = document.getElementById('countdown');
+
+    const updateDisplay = () => {
+        const minutes = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        const text = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (countdownEl) {
+            countdownEl.textContent = text;
+        }
+
+        // 最后30秒变红提醒
+        if (remaining <= 30 && countdownEl) {
+            countdownEl.style.color = '#d32f2f';
+            countdownEl.style.fontWeight = '600';
+        }
+
+        if (remaining <= 0) {
+            handleTimeout();
+        }
+    };
+
+    updateDisplay();
+
+    const timer = setInterval(() => {
+        remaining--;
+        updateDisplay();
+
+        if (remaining <= 0) {
+            clearInterval(timer);
+        }
+    }, 1000);
+}
+
+/**
+ * 处理超时
+ */
+function handleTimeout() {
+    showToast('订单已超时，请重新下单', 'warning');
+    setTimeout(() => {
+        window.location.href = 'seat-selection.html?sessionId=' + sessionId;
+    }, 2000);
+}
+
+/**
  * 处理支付
  */
-function handlePayment() {
+async function handlePayment() {
     // 验证协议勾选
     const agreementCheckbox = document.querySelector('input[type="checkbox"]');
     if (agreementCheckbox && !agreementCheckbox.checked) {
@@ -212,8 +271,8 @@ function handlePayment() {
         return;
     }
 
-    // 模拟支付过程（实际项目中需要调用支付接口）
-    processPayment();
+    // 执行支付流程
+    await processPayment();
 }
 
 /**
@@ -223,25 +282,41 @@ async function processPayment() {
     const payBtn = document.getElementById('payBtn');
     if (payBtn) {
         payBtn.disabled = true;
-        payBtn.textContent = '支付处理中...';
+        payBtn.textContent = '处理中...';
     }
 
     try {
-        // 实际项目中，这里需要调用后端支付接口
-        // const result = await createOrder({ ... });
-        // await payOrder(result.orderNo, paymentMethod);
+        // 1. 创建订单
+        console.log('创建订单:', { sessionId, eventId, selectedSeats });
 
-        // 模拟支付延迟
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // 收集座位ID
+        const seatIds = selectedSeats.map(s => s.seatId).filter(id => id);
 
-        // 支付成功，跳转到结果页面
+        if (seatIds.length === 0) {
+            throw new Error('座位信息不完整，请重新选择');
+        }
+
+        const orderResult = await createOrder(sessionId, eventId, seatIds);
+        console.log('订单创建成功:', orderResult);
+
+        const orderNo = orderResult.orderNo;
+
+        // 2. 调用支付接口
+        console.log('发起支付:', orderNo);
+        const payResult = await payOrder(orderNo, 'wechat');
+        console.log('支付结果:', payResult);
+
+        // 3. 清除存储的订单信息
         sessionStorage.removeItem('selectedSeats');
         sessionStorage.removeItem('sessionId');
         sessionStorage.removeItem('eventId');
         sessionStorage.removeItem('sessionData');
         sessionStorage.removeItem('totalPrice');
+        sessionStorage.removeItem('lockId');
+        sessionStorage.removeItem('lockExpireTime');
 
-        window.location.href = 'reservation-result.html?status=success';
+        // 4. 跳转到结果页面
+        window.location.href = `reservation-result.html?status=success&orderNo=${orderNo}`;
 
     } catch (error) {
         console.error('支付失败:', error);
@@ -265,6 +340,7 @@ function showError(message) {
         errorDiv.innerHTML = `
             <div class="empty-state-icon">⚠️</div>
             <div class="empty-state-text">${message}</div>
+            <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">返回首页</a>
         `;
         mainContent.innerHTML = '';
         mainContent.appendChild(errorDiv);

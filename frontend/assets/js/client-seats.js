@@ -74,11 +74,45 @@ const SEAT_STATUS = {
     SELECTED: 'selected'       // 已选（当前用户选中）
 };
 
+/**
+ * 锁定座位
+ * @param {number} sessionId - 场次ID
+ * @param {number} userId - 用户ID
+ * @param {array} seatIds - 座位ID列表
+ * @param {number} expireSeconds - 锁定时长(秒)，默认900(15分钟)
+ * @returns {Promise<object>} 锁座结果 { success, code, message, lockId, lockedSeats, expireTime }
+ */
+async function lockSeats(sessionId, userId, seatIds, expireSeconds = 900) {
+    return clientPost('/api/seckill/lock', {
+        sessionId: sessionId,
+        userId: userId,
+        seatIds: seatIds,
+        expireSeconds: expireSeconds
+    });
+}
+
+/**
+ * 释放座位
+ * @param {number} sessionId - 场次ID
+ * @param {number} userId - 用户ID
+ * @param {array} seatIds - 座位ID列表
+ * @returns {Promise<object>} 释放结果
+ */
+async function releaseSeats(sessionId, userId, seatIds) {
+    return clientPost('/api/seckill/release', {
+        sessionId: sessionId,
+        userId: userId,
+        seatIds: seatIds
+    });
+}
+
 // 导出函数和常量
 // export {
 //     getSeatLayout,
 //     parseLayoutData,
 //     getSeatStatusClass,
 //     getSeatStatusColor,
-//     SEAT_STATUS
+//     SEAT_STATUS,
+//     lockSeats,
+//     releaseSeats
 // };

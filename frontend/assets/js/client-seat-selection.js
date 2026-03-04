@@ -10,9 +10,16 @@ let currentEventId = null;
 let currentSessionData = null;
 let selectedSeats = new Map(); // 使用 Map 存储选中的座位，key 为 "row-seat"
 let seatLayoutData = null; // 座位布局数据
+let seatStatusData = null; // 场次座位状态数据（实时）
+let seatIdMap = new Map(); // 座位位置到座位ID的映射，key: "areaCode-rowNum-seatNum", value: seatId
 
 // 最大购票数量
 const MAX_SEATS = 4;
+
+// 锁座相关
+let lockId = null;
+let lockExpireTime = null;
+let lockTimer = null;
 
 // 缩放和拖拽相关变量
 let zoomState = {
@@ -168,19 +175,32 @@ async function loadSeatLayout(templateId) {
     }
 
     try {
-        const result = await getSeatLayout(templateId);
-        console.log('座位布局数据:', result);
+        // 并行获取座位布局和场次座位状态
+        const [layoutResult, seatsResult] = await Promise.all([
+            getSeatLayout(templateId),
+            getSessionSeats(currentSessionId)
+        ]);
+
+        console.log('座位布局数据:', layoutResult);
+        console.log('场次座位状态:', seatsResult);
 
         // 解析布局数据
-        seatLayoutData = parseLayoutData(result.layoutData);
+        seatLayoutData = parseLayoutData(layoutResult.layoutData);
         if (!seatLayoutData) {
             console.error('解析布局数据失败');
             renderEmptySeatMap();
             return;
         }
 
-        // 渲染座位图
-        renderSeatMap(seatLayoutData);
+        // 保存座位状态数据
+        // clientGet 已经解包了 result.data，所以 seatsResult 就是 { sessionId, seats }
+        seatStatusData = seatsResult.seats || [];
+
+        // 构建座位ID映射
+        buildSeatIdMap();
+
+        // 渲染座位图（合并布局和状态）
+        renderSeatMapWithStatus(seatLayoutData, seatStatusData);
 
     } catch (error) {
         console.error('加载座位布局失败:', error);
@@ -189,9 +209,64 @@ async function loadSeatLayout(templateId) {
 }
 
 /**
- * 渲染座位图
+ * 构建座位位置到ID的映射
  */
-function renderSeatMap(layoutData) {
+function buildSeatIdMap() {
+    seatIdMap.clear();
+    if (!seatStatusData || seatStatusData.length === 0) return;
+
+    seatStatusData.forEach(seat => {
+        // 根据 seatNumber 或 seatRow + seatColumn 构建key
+        // seatNumber 格式: "1排01座" 或类似
+        const key = `${seat.seatRow || ''}-${seat.seatColumn || seat.seatNumber || ''}`;
+        seatIdMap.set(key, seat.id);
+    });
+}
+
+/**
+ * 根据位置获取座位状态
+ */
+function getSeatStatusByPosition(areaCode, rowNum, seatNum) {
+    if (!seatStatusData || seatStatusData.length === 0) {
+        return SEAT_STATUS.AVAILABLE; // 默认可售
+    }
+
+    // 尝试匹配座位状态
+    const seat = seatStatusData.find(s => {
+        // 匹配逻辑：根据区域、行、列匹配
+        // 后端返回的数据格式可能不同，需要适配
+        return (
+            (s.area === areaCode || s.areaCode === areaCode) &&
+            (s.seatRow == rowNum || s.rowNum == rowNum) &&
+            (s.seatColumn == seatNum || s.seatNum == seatNum)
+        );
+    });
+
+    if (seat) {
+        // 转换后端状态到前端状态
+        return convertBackendStatus(seat.status);
+    }
+
+    return SEAT_STATUS.AVAILABLE;
+}
+
+/**
+ * 转换后端座位状态到前端状态
+ */
+function convertBackendStatus(backendStatus) {
+    const statusMap = {
+        'available': SEAT_STATUS.AVAILABLE,
+        'sold': SEAT_STATUS.SOLD,
+        'locked': SEAT_STATUS.LOCKED,
+        'unavailable': SEAT_STATUS.UNAVAILABLE
+    };
+    return statusMap[backendStatus] || SEAT_STATUS.AVAILABLE;
+}
+
+/**
+ * 渲染座位图（含实时状态）
+ */
+function renderSeatMapWithStatus(layoutData, seatStatus) {
     const container = document.getElementById('seatsContent');
     if (!container) return;
 
@@ -221,8 +296,8 @@ function renderSeatMap(layoutData) {
                 justify-content: center;
             `;
 
-            // 渲染该行的座位
-            renderRowSeats(rowDiv, row, area);
+            // 渲染该行的座位（传入区域和行信息用于状态查询）
+            renderRowSeatsWithStatus(rowDiv, row, area);
 
             areaDiv.appendChild(rowDiv);
         });
@@ -235,6 +310,68 @@ function renderSeatMap(layoutData) {
 
     // 自动调整缩放以适应内容
     setTimeout(() => autoFitZoom(), 100);
+}
+
+/**
+ * 渲染一行的座位（含状态）
+ */
+function renderRowSeatsWithStatus(rowDiv, row, area) {
+    // 如果有详细的座位列表，使用它
+    if (row.seats && row.seats.length > 0) {
+        row.seats.forEach((seat) => {
+            const seatEl = createSeatElementWithStatus(seat, row, area);
+            rowDiv.appendChild(seatEl);
+        });
+    } else {
+        // 否则根据 startSeat 和 endSeat 生成座位
+        for (let i = row.startSeat; i <= row.endSeat; i++) {
+            const seat = {
+                seatNum: i
+            };
+            const seatEl = createSeatElementWithStatus(seat, row, area);
+            rowDiv.appendChild(seatEl);
+        }
+    }
+}
+
+/**
+ * 创建座位元素（含实时状态）
+ */
+function createSeatElementWithStatus(seat, row, area) {
+    const seatEl = document.createElement('div');
+
+    // 获取实时座位状态
+    const realTimeStatus = getSeatStatusByPosition(area.areaCode, row.rowNum, seat.seatNum);
+
+    // 查找座位ID
+    const seatIdKey = `${row.rowNum || ''}-${seat.seatNum}`;
+    const seatId = seatIdMap.get(seatIdKey) || '';
+
+    // 构建座位数据标识
+    const seatKey = `${area.areaCode}-${row.rowNum}-${seat.seatNum}`;
+    seatEl.dataset.key = seatKey;
+    seatEl.dataset.seatId = seatId;
+    seatEl.dataset.areaCode = area.areaCode;
+    seatEl.dataset.rowNum = row.rowNum;
+    seatEl.dataset.seatNum = seat.seatNum;
+    seatEl.dataset.price = area.price || '';
+    seatEl.dataset.areaName = area.areaName;
+    seatEl.dataset.realTimeStatus = realTimeStatus;
+
+    // 设置CSS类（根据实时状态）
+    seatEl.className = `seat ${getSeatStatusClass(realTimeStatus)}`;
+
+    // 设置座位标签（只显示座位号）
+    seatEl.textContent = seat.seatNum;
+
+    return seatEl;
+}
+
+/**
+ * 渲染座位图（旧版本，保留兼容）
+ */
+function renderSeatMap(layoutData) {
+    return renderSeatMapWithStatus(layoutData, seatStatusData);
 }
 
 /**
@@ -732,25 +869,143 @@ function renderEmptySeatMap() {
 /**
  * 处理提交
  */
-function handleSubmit() {
+async function handleSubmit() {
     if (selectedSeats.size === 0) {
         showToast('请先选择座位', 'warning');
         return;
     }
 
-    // 将选中的座位信息存储到 sessionStorage
-    const seatsData = Array.from(selectedSeats.values());
-    sessionStorage.setItem('selectedSeats', JSON.stringify(seatsData));
-    sessionStorage.setItem('sessionId', currentSessionId);
-    sessionStorage.setItem('eventId', currentEventId);
-    sessionStorage.setItem('sessionData', JSON.stringify(currentSessionData));
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '处理中...';
+    }
 
-    // 计算总价
-    const totalPrice = seatsData.reduce((sum, seat) => sum + (seat.price || 0), 0);
-    sessionStorage.setItem('totalPrice', totalPrice);
+    try {
+        // 收集座位ID
+        const seatIds = [];
+        const seatsData = [];
 
-    // 跳转到订单确认页面
-    window.location.href = `order-confirm.html?sessionId=${currentSessionId}`;
+        // 从DOM获取选中的座位元素
+        const selectedSeatElements = document.querySelectorAll('.seat.seat-selected');
+        selectedSeatElements.forEach(el => {
+            const seatId = el.dataset.seatId;
+            if (seatId) {
+                seatIds.push(seatId);
+            }
+            seatsData.push({
+                seatId: seatId,
+                areaCode: el.dataset.areaCode,
+                areaName: el.dataset.areaName,
+                rowNum: el.dataset.rowNum,
+                seatNum: el.dataset.seatNum,
+                price: parseFloat(el.dataset.price) || 0
+            });
+        });
+
+        if (seatIds.length === 0) {
+            showToast('无法获取座位信息，请刷新页面重试', 'error');
+            return;
+        }
+
+        // 获取用户ID
+        const user = getCurrentUser();
+        const userId = user?.id || 1; // 默认测试用户ID为1
+
+        // 调用锁座接口
+        console.log('调用锁座接口:', { sessionId: currentSessionId, userId, seatIds });
+        const lockResult = await lockSeats(currentSessionId, userId, seatIds, 900);
+
+        console.log('锁座结果:', lockResult);
+
+        // clientPost 已解包，lockResult 就是 { success, code, message, lockId, lockedSeats, expireTime }
+        if (lockResult.success === true || lockResult.code === 0) {
+            // 锁座成功
+            lockId = lockResult.lockId;
+            lockExpireTime = lockResult.expireTime;
+
+            // 启动倒计时
+            startLockCountdown(900);
+
+            // 将选中的座位信息存储到 sessionStorage
+            sessionStorage.setItem('selectedSeats', JSON.stringify(seatsData));
+            sessionStorage.setItem('sessionId', currentSessionId);
+            sessionStorage.setItem('eventId', currentEventId);
+            sessionStorage.setItem('sessionData', JSON.stringify(currentSessionData));
+            sessionStorage.setItem('lockId', lockId);
+            sessionStorage.setItem('lockExpireTime', lockExpireTime);
+
+            // 计算总价
+            const totalPrice = seatsData.reduce((sum, seat) => sum + (seat.price || 0), 0);
+            sessionStorage.setItem('totalPrice', totalPrice);
+
+            // 跳转到订单确认页面
+            window.location.href = `order-confirm.html?sessionId=${currentSessionId}&lockId=${lockId}`;
+        } else {
+            // 锁座失败
+            const errorMsg = lockResult.message || '锁座失败，请选择其他座位';
+            showToast(errorMsg, 'error');
+
+            // 刷新座位状态
+            await refreshSeatStatus();
+        }
+    } catch (error) {
+        console.error('锁座失败:', error);
+        showToast('锁座失败: ' + error.message, 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '立即占用';
+        }
+    }
+}
+
+/**
+ * 刷新座位状态
+ */
+async function refreshSeatStatus() {
+    try {
+        const result = await getSessionSeats(currentSessionId);
+        // clientGet 已经解包了 result.data
+        seatStatusData = result.seats || [];
+        buildSeatIdMap();
+
+        // 重新渲染座位图
+        renderSeatMapWithStatus(seatLayoutData, seatStatusData);
+    } catch (error) {
+        console.error('刷新座位状态失败:', error);
+    }
+}
+
+/**
+ * 启动锁座倒计时
+ */
+function startLockCountdown(seconds) {
+    if (lockTimer) {
+        clearInterval(lockTimer);
+    }
+
+    let remaining = seconds;
+
+    lockTimer = setInterval(() => {
+        remaining--;
+
+        // 可以在这里更新倒计时显示
+
+        if (remaining <= 0) {
+            clearInterval(lockTimer);
+            handleLockExpire();
+        }
+    }, 1000);
+}
+
+/**
+ * 处理锁座过期
+ */
+function handleLockExpire() {
+    showToast('座位锁定已过期，请重新选择', 'warning');
+    // 刷新页面或跳转回选座页
+    location.reload();
 }
 
 /**

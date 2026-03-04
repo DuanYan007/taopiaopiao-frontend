@@ -15,6 +15,18 @@ async function clientRequest(url, options = {}) {
         ...options.headers
     };
 
+    // 添加 X-User-Id 请求头 (从用户信息获取)
+    const user = getCurrentUser?.();
+    if (user?.id) {
+        headers['X-User-Id'] = user.id;
+    }
+
+    // 添加 Authorization 请求头 (如果有 Token)
+    const token = getToken?.();
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
         const response = await fetch(url, {
             ...options,

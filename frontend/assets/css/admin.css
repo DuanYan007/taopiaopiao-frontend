@@ -671,3 +671,43 @@
     border-radius: 4px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
+
+/* 图片上传组件 */
+.image-upload-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.image-upload-preview {
+    width: 200px;
+    height: 250px;
+    border: 2px dashed #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    position: relative;
+    background: #fafafa;
+}
+
+.image-upload-preview:hover {
+    border-color: #1976d2;
+}
+
+.image-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+    color: #999;
+}
+
+.image-upload-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}

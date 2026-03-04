@@ -184,8 +184,22 @@
                         <div class="admin-form-section-title">演出详情</div>
                         <div class="form-group">
                             <label class="form-label">演出海报</label>
-                            <input type="url" class="form-input" name="coverImage" placeholder="请输入海报图片URL">
-                            <div class="text-small text-muted" style="margin-top: 4px;">建议尺寸：800×1000px，大小不超过 5MB</div>
+                            <div class="image-upload-container">
+                                <div class="image-upload-preview" id="coverImagePreview">
+                                    <div class="image-upload-placeholder" id="coverPlaceholder">
+                                        <span style="font-size: 48px; display: block; margin-bottom: 8px;">📷</span>
+                                        <span>点击上传或拖拽图片到此处</span>
+                                        <span class="text-small text-muted">支持 JPG、PNG、GIF 格式，最大 5MB</span>
+                                    </div>
+                                    <img id="coverImageImg" style="display: none; width: 100%; height: 100%; object-fit: cover;" alt="海报预览">
+                                </div>
+                                <input type="file" id="coverImageFile" accept="image/*" style="display: none;">
+                                <div class="image-upload-actions">
+                                    <button type="button" class="btn btn-secondary btn-small" onclick="document.getElementById('coverImageFile').click()">选择图片</button>
+                                    <button type="button" class="btn btn-outline btn-small" id="removeCoverBtn" style="display: none;" onclick="removeCoverImage()">删除</button>
+                                </div>
+                                <input type="hidden" name="coverImage" id="coverImageInput">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">演出图片</label>

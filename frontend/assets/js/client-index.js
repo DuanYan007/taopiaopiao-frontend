@@ -160,14 +160,16 @@ function loadEventList() {
 
                 console.log('演出数量:', eventList.length);
 
+                // 无论是否为空，都调用renderEvents来清空旧数据
+                renderEvents(eventList);
+
+                // 如果数据为空，显示空状态提示
                 if (eventList.length === 0) {
                     if (emptyState) {
                         emptyState.style.display = 'block';
                     }
                     return;
                 }
-
-                renderEvents(eventList);
             })
             .catch(function(error) {
                 console.error('请求失败:', error);
@@ -218,14 +220,16 @@ function loadEventList() {
 
                 console.log('演出数量:', eventList.length);
 
+                // 无论是否为空，都调用renderEvents来清空旧数据
+                renderEvents(eventList);
+
+                // 如果数据为空，显示空状态提示
                 if (eventList.length === 0) {
                     if (emptyState) {
                         emptyState.style.display = 'block';
                     }
                     return;
                 }
-
-                renderEvents(eventList);
             })
             .catch(function(error) {
                 console.error('请求失败:', error);
@@ -252,25 +256,34 @@ function renderEvents(events) {
 
     var eventGrid = document.getElementById('eventGrid');
 
-    // 清空并重建（直接将卡片添加到 eventGrid，利用其 grid 布局）
-    eventGrid.innerHTML = '';
+    // 获取现有的状态元素
+    var loadingState = document.getElementById('loadingState');
+    var emptyState = document.getElementById('emptyState');
 
-    // 创建 loading 和 empty 状态元素
-    var loadingDiv = document.createElement('div');
-    loadingDiv.className = 'loading-state';
-    loadingDiv.id = 'loadingState';
-    loadingDiv.style.display = 'none';
-    loadingDiv.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">加载中...</div>';
+    // 移除所有旧的演出卡片（保留状态元素）
+    var cards = eventGrid.querySelectorAll('.event-card');
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].remove();
+    }
 
-    var emptyDiv = document.createElement('div');
-    emptyDiv.className = 'empty-state';
-    emptyDiv.id = 'emptyState';
-    emptyDiv.style.display = 'none';
-    emptyDiv.innerHTML = '<div class="empty-state-icon">🎭</div><div class="empty-state-text">暂无演出数据</div>';
+    // 如果状态元素不存在，创建它们
+    if (!loadingState) {
+        loadingState = document.createElement('div');
+        loadingState.className = 'loading-state';
+        loadingState.id = 'loadingState';
+        loadingState.style.display = 'none';
+        loadingState.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">加载中...</div>';
+        eventGrid.appendChild(loadingState);
+    }
 
-    // 将状态元素添加到 grid
-    eventGrid.appendChild(loadingDiv);
-    eventGrid.appendChild(emptyDiv);
+    if (!emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.id = 'emptyState';
+        emptyState.style.display = 'none';
+        emptyState.innerHTML = '<div class="empty-state-icon">🎭</div><div class="empty-state-text">暂无演出数据</div>';
+        eventGrid.appendChild(emptyState);
+    }
 
     // 直接将演出卡片添加到 eventGrid（grid 布局会自动排列）
     for (var i = 0; i < events.length; i++) {

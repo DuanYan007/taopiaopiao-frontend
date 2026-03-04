@@ -5,6 +5,7 @@
 
 let eventId = null;
 let isReadonly = false;
+let coverImageUploading = false;
 
 /**
  * 页面初始化
@@ -18,6 +19,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 修改标题
     const title = document.querySelector('.admin-header-title');
     title.textContent = eventId ? (isReadonly ? '查看演出' : '编辑演出') : '新建演出';
+
+    // 初始化文件上传
+    initImageUpload();
 
     // 如果是只读模式，禁用表单
     if (isReadonly) {
@@ -48,6 +52,157 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 /**
+ * 初始化图片上传
+ */
+function initImageUpload() {
+    const fileInput = document.getElementById('coverImageFile');
+    const preview = document.getElementById('coverImagePreview');
+    const placeholder = document.getElementById('coverPlaceholder');
+    const img = document.getElementById('coverImageImg');
+    const removeBtn = document.getElementById('removeCoverBtn');
+
+    // 点击预览区域触发文件选择
+    preview.addEventListener('click', () => {
+        if (!isReadonly) {
+            fileInput.click();
+        }
+    });
+
+    // 文件选择变化
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // 验证文件类型
+            if (!file.type.match('image.*')) {
+                alert('请选择图片文件');
+                return;
+            }
+            // 验证文件大小（5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                alert('图片大小不能超过5MB');
+                return;
+            }
+            // 预览本地图片
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+            // 上传图片
+            uploadImage(file);
+        }
+    });
+
+    // 拖拽上传
+    preview.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        preview.style.borderColor = '#1976d2';
+    });
+
+    preview.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        preview.style.borderColor = '';
+    });
+
+    preview.addEventListener('drop', (e) => {
+        e.preventDefault();
+        preview.style.borderColor = '';
+        if (isReadonly) return;
+
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.match('image.*')) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('图片大小不能超过5MB');
+                return;
+            }
+            // 预览本地图片
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+            // 上传图片
+            uploadImage(file);
+        }
+    });
+}
+
+/**
+ * 上传图片
+ */
+async function uploadImage(file) {
+    if (coverImageUploading) return;
+
+    coverImageUploading = true;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    console.log('开始上传图片...');
+
+    try {
+        const response = await fetch('/api/admin/files/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('响应状态:', response.status, response.statusText);
+        console.log('响应头:', response.headers);
+
+        // 检查HTTP状态
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // 检查响应内容类型
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+
+        if (!contentType || !contentType.includes('application/json')) {
+            // 返回的不是JSON，可能是HTML错误页面
+            const text = await response.text();
+            console.error('服务器返回非JSON内容:', text.substring(0, 200));
+            throw new Error('后端服务未响应或返回格式错误，请确认文件上传服务已启动');
+        }
+
+        const result = await response.json();
+        console.log('解析后的JSON:', result);
+
+        if (result.code === 200 && result.data && result.data.url) {
+            // 保存URL到隐藏字段
+            document.getElementById('coverImageInput').value = result.data.url;
+            console.log('图片上传成功:', result.data.url);
+            // 显示删除按钮
+            document.getElementById('removeCoverBtn').style.display = 'inline-block';
+        } else {
+            throw new Error(result.message || result.msg || '上传失败');
+        }
+    } catch (error) {
+        console.error('图片上传失败:', error);
+        alert('图片上传失败: ' + error.message + '\n\n提示: 请确保后端文件上传服务已启动');
+        // 重置预览
+        document.getElementById('coverImageImg').style.display = 'none';
+        document.getElementById('coverPlaceholder').style.display = 'block';
+    } finally {
+        coverImageUploading = false;
+    }
+}
+
+/**
+ * 删除封面图片
+ */
+function removeCoverImage() {
+    document.getElementById('coverImageFile').value = '';
+    document.getElementById('coverImageInput').value = '';
+    document.getElementById('coverImageImg').style.display = 'none';
+    document.getElementById('coverPlaceholder').style.display = 'block';
+    document.getElementById('removeCoverBtn').style.display = 'none';
+}
+
+/**
  * 加载演出数据
  */
 async function loadEventData() {
@@ -70,8 +225,12 @@ async function loadEventData() {
         setFormValue('saleStartTime', formatDateTimeLocal(event.saleStartTime));
         setFormValue('saleEndTime', formatDateTimeLocal(event.saleEndTime));
 
-        // 回填演出详情
-        setFormValue('coverImage', event.coverImage);
+        // 回填演出详情 - 封面图片
+        if (event.coverImage) {
+            setFormValue('coverImage', event.coverImage);
+            showCoverImagePreview(event.coverImage);
+        }
+
         setFormValue('images', Array.isArray(event.images) ? event.images.join(',') : event.images);
         setFormValue('description', event.description);
         setFormValue('tips', event.tips);
@@ -94,6 +253,20 @@ async function loadEventData() {
 }
 
 /**
+ * 显示封面图片预览
+ */
+function showCoverImagePreview(url) {
+    const img = document.getElementById('coverImageImg');
+    const placeholder = document.getElementById('coverPlaceholder');
+    const removeBtn = document.getElementById('removeCoverBtn');
+
+    img.src = url;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = 'inline-block';
+}
+
+/**
  * 禁用表单（查看模式）
  */
 function disableForm() {
@@ -109,6 +282,12 @@ function disableForm() {
  */
 async function handleFormSubmit(e) {
     e.preventDefault();
+
+    // 如果正在上传图片，等待上传完成
+    if (coverImageUploading) {
+        alert('图片正在上传中，请稍候...');
+        return;
+    }
 
     // 禁用提交按钮
     const submitBtn = document.getElementById('submitBtn');

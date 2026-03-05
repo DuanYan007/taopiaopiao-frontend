@@ -110,6 +110,12 @@ async function loadSessionData(sessionId) {
         currentSessionData = await getSessionDetail(sessionId);
         console.log('场次数据:', currentSessionData);
 
+        // 如果URL参数中没有eventId，从场次数据中获取
+        if (!currentEventId && currentSessionData.eventId) {
+            currentEventId = currentSessionData.eventId;
+            console.log('从场次数据中获取eventId:', currentEventId);
+        }
+
         // 更新页面信息
         updatePageInfo(currentSessionData);
 

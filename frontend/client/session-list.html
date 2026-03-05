@@ -264,13 +264,13 @@
                 // 在线选座模式 - 直接到选座页面
                 return `
                     <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
-                    <a href="seat-selection.html?sessionId=${session.id}" class="btn btn-primary">选座购票</a>
+                    <a href="seat-selection.html?sessionId=${session.id}&eventId=${eventId}" class="btn btn-primary">选座购票</a>
                 `;
             } else {
                 // 系统自动选座模式 - 先选择票档
                 return `
                     <button class="btn btn-outline" onclick="setReminder(${session.id})">设置提醒</button>
-                    <a href="ticket-tier-selection.html?sessionId=${session.id}" class="btn btn-primary">选择票档</a>
+                    <a href="ticket-tier-selection.html?sessionId=${session.id}&eventId=${eventId}" class="btn btn-primary">选择票档</a>
                 `;
             }
         }

@@ -286,27 +286,40 @@ async function processPayment() {
     }
 
     try {
-        // 1. 创建订单
-        console.log('创建订单:', { sessionId, eventId, selectedSeats });
+        console.log('创建订单并支付:', { sessionId, eventId, selectedSeats, totalPrice });
 
         // 收集座位ID
         const seatIds = selectedSeats.map(s => s.seatId).filter(id => id);
+
+        // 构建座位详细信息（用于后端验证价格）
+        const seatDetails = selectedSeats.map(s => ({
+            seatId: s.seatId,
+            areaCode: s.areaCode,
+            areaName: s.areaName,
+            rowNum: s.rowNum,
+            seatNum: s.seatNum,
+            price: s.price || 0
+        }));
 
         if (seatIds.length === 0) {
             throw new Error('座位信息不完整，请重新选择');
         }
 
-        const orderResult = await createOrder(sessionId, eventId, seatIds);
-        console.log('订单创建成功:', orderResult);
+        console.log('发送订单数据:', {
+            sessionId,
+            eventId,
+            seatIds,
+            seatDetails,
+            totalAmount: totalPrice
+        });
+
+        // 创建订单并直接支付
+        const orderResult = await createOrder(sessionId, eventId, seatIds, seatDetails, totalPrice);
+        console.log('订单创建并支付成功:', orderResult);
 
         const orderNo = orderResult.orderNo;
 
-        // 2. 调用支付接口
-        console.log('发起支付:', orderNo);
-        const payResult = await payOrder(orderNo, 'wechat');
-        console.log('支付结果:', payResult);
-
-        // 3. 清除存储的订单信息
+        // 清除存储的订单信息
         sessionStorage.removeItem('selectedSeats');
         sessionStorage.removeItem('sessionId');
         sessionStorage.removeItem('eventId');
@@ -315,7 +328,7 @@ async function processPayment() {
         sessionStorage.removeItem('lockId');
         sessionStorage.removeItem('lockExpireTime');
 
-        // 4. 跳转到结果页面
+        // 跳转到结果页面
         window.location.href = `reservation-result.html?status=success&orderNo=${orderNo}`;
 
     } catch (error) {

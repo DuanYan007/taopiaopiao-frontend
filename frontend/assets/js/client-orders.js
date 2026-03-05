@@ -8,17 +8,21 @@
 const ORDERS_BASE_URL = '/api/client/orders';
 
 /**
- * 创建订单
+ * 创建订单并直接支付
  * @param {number} sessionId - 场次ID
  * @param {number} eventId - 演出ID
  * @param {array} seatIds - 座位ID列表
- * @returns {Promise<object>} 订单数据 { id, orderNo, userId, sessionId, eventId, seatIds, seatCount, unitPrice, totalAmount, status, expireTime, createdAt }
+ * @param {array} seatDetails - 座位详细信息 [{seatId, areaCode, areaName, rowNum, seatNum, price}, ...]
+ * @param {number} totalAmount - 订单总金额
+ * @returns {Promise<object>} 订单数据 { id, orderNo, userId, sessionId, eventId, seatIds, seatCount, unitPrice, totalAmount, status, payStatus, payTime, createdAt }
  */
-async function createOrder(sessionId, eventId, seatIds) {
+async function createOrder(sessionId, eventId, seatIds, seatDetails, totalAmount) {
     return clientPost(ORDERS_BASE_URL, {
         sessionId: sessionId,
         eventId: eventId,
-        seatIds: seatIds
+        seatIds: seatIds,
+        seatDetails: seatDetails,
+        totalAmount: totalAmount
     });
 }
 

@@ -11,7 +11,7 @@ let currentSessionData = null;
 let selectedSeats = new Map(); // 使用 Map 存储选中的座位，key 为 "row-seat"
 let seatLayoutData = null; // 座位布局数据
 let seatStatusData = null; // 场次座位状态数据（实时）
-let seatIdMap = new Map(); // 座位位置到座位ID的映射，key: "areaCode-rowNum-seatNum", value: seatId
+let seatIdMap = new Map(); // 座位位置到座位ID的映射，key: "areaName-seatRow-seatColumn"（如 "A区-1排-01"），value: seatId
 
 // 最大购票数量
 const MAX_SEATS = 4;
@@ -195,6 +195,7 @@ async function loadSeatLayout(templateId) {
         // 保存座位状态数据
         // clientGet 已经解包了 result.data，所以 seatsResult 就是 { sessionId, seats }
         seatStatusData = seatsResult.seats || [];
+        console.log('场次座位状态数据:', seatStatusData);
 
         // 构建座位ID映射
         buildSeatIdMap();
@@ -210,36 +211,67 @@ async function loadSeatLayout(templateId) {
 
 /**
  * 构建座位位置到ID的映射
+ * 修复：使用 areaName + seatRow + seatColumn 作为唯一键，确保三者一致才匹配
  */
 function buildSeatIdMap() {
     seatIdMap.clear();
     if (!seatStatusData || seatStatusData.length === 0) return;
 
     seatStatusData.forEach(seat => {
-        // 根据 seatNumber 或 seatRow + seatColumn 构建key
-        // seatNumber 格式: "1排01座" 或类似
-        const key = `${seat.seatRow || ''}-${seat.seatColumn || seat.seatNumber || ''}`;
-        seatIdMap.set(key, seat.id);
+        // 后端数据格式: seatRow="1排", seatColumn="01", seatNumber="1排01座", area="A区"
+        // 必须三者(区域、行、列)都一致才能匹配成功
+
+        const areaName = seat.area;           // "A区"
+        const seatRow = seat.seatRow;         // "1排"
+        const seatColumn = seat.seatColumn;   // "01"
+
+        if (!areaName || !seatRow || !seatColumn) {
+            console.warn('座位数据不完整，跳过:', seat);
+            return;
+        }
+
+        // 主键格式: "A区-1排-01" (区域名-行-列)
+        // 这是唯一准确的匹配方式，三者必须一致
+        const primaryKey = `${areaName}-${seatRow}-${seatColumn}`;
+        seatIdMap.set(primaryKey, seat.id);
+
+        // 辅助格式: "A区-1排01座" (区域名-完整座位号)
+        if (seat.seatNumber) {
+            seatIdMap.set(`${areaName}-${seat.seatNumber}`, seat.id);
+        }
+
+        // 辅助格式: 提取行号数字 "A区-1-01"
+        const rowNumNum = seatRow.replace(/\D/g, ''); // "1排" -> "1"
+        if (rowNumNum) {
+            seatIdMap.set(`${areaName}-${rowNumNum}-${seatColumn}`, seat.id);
+        }
     });
+
+    console.log('座位ID映射表构建完成，映射数量:', seatIdMap.size);
 }
 
 /**
  * 根据位置获取座位状态
+ * 修复：使用 areaName + rowNum + seatNum 三者匹配，确保准确对应
  */
-function getSeatStatusByPosition(areaCode, rowNum, seatNum) {
+function getSeatStatusByPosition(areaName, rowNum, seatNum) {
     if (!seatStatusData || seatStatusData.length === 0) {
         return SEAT_STATUS.AVAILABLE; // 默认可售
     }
 
-    // 尝试匹配座位状态
-    const seat = seatStatusData.find(s => {
-        // 匹配逻辑：根据区域、行、列匹配
-        // 后端返回的数据格式可能不同，需要适配
-        return (
-            (s.area === areaCode || s.areaCode === areaCode) &&
-            (s.seatRow == rowNum || s.rowNum == rowNum) &&
-            (s.seatColumn == seatNum || s.seatNum == seatNum)
-        );
+    // 构建匹配条件：三者必须一致
+    // areaName: "A区"
+    // rowNum: 1 (模板中的行号数字)
+    // seatNum: 1 (模板中的座位号数字)
+
+    const seatRowLabel = `${rowNum}排`;  // "1排"
+    const seatColumn = String(seatNum).padStart(2, '0');  // "01"
+
+    // 尝试匹配：area + seatRow + seatColumn 三者一致
+    let seat = seatStatusData.find(s => {
+        return s.area === areaName &&
+               s.seatRow === seatRowLabel &&
+               s.seatColumn === seatColumn;
     });
 
     if (seat) {
@@ -247,6 +279,20 @@ function getSeatStatusByPosition(areaCode, rowNum, seatNum) {
         return convertBackendStatus(seat.status);
     }
 
+    // 如果没找到，尝试提取后端数据的行号数字再匹配（兼容处理）
+    seat = seatStatusData.find(s => {
+        const backendRowNum = parseInt(s.seatRow?.replace(/\D/g, ''), 10);
+        const backendSeatNum = parseInt(s.seatColumn, 10);
+        return s.area === areaName &&
+               backendRowNum === rowNum &&
+               backendSeatNum === seatNum;
+    });
+
+    if (seat) {
+        return convertBackendStatus(seat.status);
+    }
+
+    // 未找到匹配座位，默认可售
     return SEAT_STATUS.AVAILABLE;
 }
 
@@ -336,26 +382,48 @@ function renderRowSeatsWithStatus(rowDiv, row, area) {
 
 /**
  * 创建座位元素（含实时状态）
+ * 修复：使用 areaName 进行精确匹配，确保区域、行、列三者一致
  */
 function createSeatElementWithStatus(seat, row, area) {
     const seatEl = document.createElement('div');
 
-    // 获取实时座位状态
-    const realTimeStatus = getSeatStatusByPosition(area.areaCode, row.rowNum, seat.seatNum);
+    // 使用 areaName 获取实时座位状态
+    const realTimeStatus = getSeatStatusByPosition(area.areaName, row.rowNum, seat.seatNum);
 
-    // 查找座位ID
-    const seatIdKey = `${row.rowNum || ''}-${seat.seatNum}`;
-    const seatId = seatIdMap.get(seatIdKey) || '';
+    // 查找座位ID - 使用 areaName + rowLabel + seatColumn 格式匹配
+    // 后端数据: area="A区", seatRow="1排", seatColumn="01", seatNumber="1排01座"
+    // 前端模板: areaName="A区", rowNum=1, rowLabel="1排", seatNum=1
+    let seatId = '';
+
+    const seatNumStr = String(seat.seatNum).padStart(2, '0'); // 1 -> "01"
+    const rowLabel = row.rowLabel || `${row.rowNum}排`;  // "1排"
+
+    // 主键格式: "A区-1排-01" (区域名-行标签-列号补零)
+    let key = `${area.areaName}-${rowLabel}-${seatNumStr}`;
+    seatId = seatIdMap.get(key);
+
+    // 辅助格式1: "A区-1-01" (区域名-行号数字-列号补零)
+    if (!seatId) {
+        key = `${area.areaName}-${row.rowNum}-${seatNumStr}`;
+        seatId = seatIdMap.get(key);
+    }
+
+    // 辅助格式2: "A区-1排01座" (区域名-完整座位号)
+    if (!seatId) {
+        key = `${area.areaName}-${rowLabel}${seatNumStr}座`;
+        seatId = seatIdMap.get(key);
+    }
 
     // 构建座位数据标识
     const seatKey = `${area.areaCode}-${row.rowNum}-${seat.seatNum}`;
     seatEl.dataset.key = seatKey;
-    seatEl.dataset.seatId = seatId;
+    seatEl.dataset.seatId = seatId || '';  // 即使找不到ID也继续渲染
     seatEl.dataset.areaCode = area.areaCode;
+    seatEl.dataset.areaName = area.areaName;  // 保存区域名称
     seatEl.dataset.rowNum = row.rowNum;
+    seatEl.dataset.rowLabel = rowLabel;
     seatEl.dataset.seatNum = seat.seatNum;
     seatEl.dataset.price = area.price || '';
-    seatEl.dataset.areaName = area.areaName;
     seatEl.dataset.realTimeStatus = realTimeStatus;
 
     // 设置CSS类（根据实时状态）
@@ -363,6 +431,21 @@ function createSeatElementWithStatus(seat, row, area) {
 
     // 设置座位标签（只显示座位号）
     seatEl.textContent = seat.seatNum;
+
+    // 调试：记录无法匹配ID的座位
+    if (!seatId) {
+        console.warn('无法匹配座位ID:', {
+            areaName: area.areaName,
+            rowNum: row.rowNum,
+            rowLabel: rowLabel,
+            seatNum: seat.seatNum,
+            attemptedKeys: [
+                `${area.areaName}-${rowLabel}-${seatNumStr}`,
+                `${area.areaName}-${row.rowNum}-${seatNumStr}`,
+                `${area.areaName}-${rowLabel}${seatNumStr}座`
+            ]
+        });
+    }
 
     return seatEl;
 }
@@ -888,8 +971,18 @@ async function handleSubmit() {
 
         // 从DOM获取选中的座位元素
         const selectedSeatElements = document.querySelectorAll('.seat.seat-selected');
+        console.log('=== 提交选座 ===');
+        console.log('选中的座位元素数量:', selectedSeatElements.length);
         selectedSeatElements.forEach(el => {
             const seatId = el.dataset.seatId;
+            console.log('座位:', {
+                seatId: seatId,
+                rowLabel: el.dataset.rowLabel,
+                rowNum: el.dataset.rowNum,
+                seatNum: el.dataset.seatNum,
+                areaCode: el.dataset.areaCode,
+                price: el.dataset.price
+            });
             if (seatId) {
                 seatIds.push(seatId);
             }

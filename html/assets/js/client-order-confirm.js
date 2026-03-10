@@ -11,19 +11,38 @@ let sessionData = null;
 let selectedSeats = [];
 let totalPrice = 0;
 let lockId = null;
+let orderNo = null; // 【新增】订单号
 
 /**
  * 页面初始化
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('订单确认页面初始化');
+    // 【调试】在页面上显示调试信息
+    const debugDiv = document.createElement('div');
+    debugDiv.id = 'debug-info';
+    debugDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; background: yellow; padding: 10px; border: 2px solid red; z-index: 9999; font-size: 12px; max-width: 300px;';
+    debugDiv.innerHTML = '<strong>调试信息</strong><div id="debug-content">加载中...</div>';
+    document.body.appendChild(debugDiv);
+
+    function updateDebug(info) {
+        const content = document.getElementById('debug-content');
+        if (content) {
+            content.innerHTML = Object.entries(info).map(([k, v]) => `<div>${k}: ${v}</div>`).join('');
+        }
+    }
+
+    console.log('=== 订单确认页面初始化 ===');
 
     // 更新用户信息显示
     updateUserInfo();
 
-    // 从 URL 参数获取 lockId
+    // 【调试】打印当前 URL 和参数
+    const currentUrl = window.location.href;
+    const queryString = window.location.search;
+
+    // 从 URL 参数获取 orderNo（新逻辑）
     const urlParams = new URLSearchParams(window.location.search);
-    lockId = urlParams.get('lockId');
+    const urlOrderNo = urlParams.get('orderNo');
 
     // 从 sessionStorage 获取选座信息
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -32,6 +51,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storedSessionData = sessionStorage.getItem('sessionData');
     const storedTotalPrice = sessionStorage.getItem('totalPrice');
     const storedLockId = sessionStorage.getItem('lockId');
+    const storedOrderNo = sessionStorage.getItem('orderNo');
+
+    // 【显示调试信息】
+    updateDebug({
+        '当前URL': currentUrl,
+        'URL中orderNo': urlOrderNo || '(无)',
+        '存储中orderNo': storedOrderNo || '(无)'
+    });
 
     if (!storedSessionId || !storedSeats) {
         showError('订单信息已过期，请重新选择座位');
@@ -46,7 +73,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventId = storedEventId;
     selectedSeats = JSON.parse(storedSeats);
     totalPrice = parseFloat(storedTotalPrice) || 0;
-    lockId = lockId || storedLockId;
+    lockId = storedLockId;
+
+    // 【关键】优先使用 URL 参数中的 orderNo，否则使用存储的
+    orderNo = urlOrderNo || storedOrderNo;
+
+    // 【更新调试信息】
+    updateDebug({
+        '最终orderNo': orderNo || '(无!)',
+        '来源': urlOrderNo ? 'URL' : 'SessionStorage',
+        'sessionId': sessionId,
+        'eventId': eventId
+    });
+
+    // 【新增】验证订单号
+    if (!orderNo) {
+        console.error('【错误】订单号缺失！');
+        debugDiv.style.background = 'red';
+        debugDiv.style.color = 'white';
+        updateDebug({
+            '错误': '订单号缺失!',
+            'URL中': urlOrderNo || '(无)',
+            '存储中': storedOrderNo || '(无)'
+        });
+        showError('订单号缺失，请重新选择座位');
+        setTimeout(() => {
+            window.location.href = 'seat-selection.html?sessionId=' + sessionId;
+        }, 3000);
+        return;
+    }
 
     if (storedSessionData) {
         try {
@@ -55,6 +110,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('解析场次数据失败:', e);
         }
     }
+
+    console.log('支付页面数据恢复:', { orderNo, sessionId, eventId, selectedSeats, totalPrice });
 
     // 更新页面信息
     updateOrderInfo();
@@ -277,6 +334,7 @@ async function handlePayment() {
 
 /**
  * 处理支付流程
+ * 新逻辑：使用 orderNo 支付已有订单
  */
 async function processPayment() {
     const payBtn = document.getElementById('payBtn');
@@ -286,12 +344,17 @@ async function processPayment() {
     }
 
     try {
-        console.log('创建订单并支付:', { sessionId, eventId, selectedSeats, totalPrice });
+        console.log('=== 支付流程开始 ===');
+        console.log('当前 orderNo:', orderNo);
+        console.log('当前 sessionId:', sessionId);
+        console.log('当前 eventId:', eventId);
+        console.log('当前 selectedSeats:', selectedSeats);
+        console.log('当前 totalPrice:', totalPrice);
 
         // 收集座位ID
         const seatIds = selectedSeats.map(s => s.seatId).filter(id => id);
 
-        // 构建座位详细信息（用于后端验证价格）
+        // 构建座位详细信息
         const seatDetails = selectedSeats.map(s => ({
             seatId: s.seatId,
             areaCode: s.areaCode,
@@ -301,23 +364,29 @@ async function processPayment() {
             price: s.price || 0
         }));
 
-        if (seatIds.length === 0) {
+        if (seatIds.length === 0 || seatDetails.length === 0) {
             throw new Error('座位信息不完整，请重新选择');
         }
 
-        console.log('发送订单数据:', {
-            sessionId,
-            eventId,
-            seatIds,
-            seatDetails,
-            totalAmount: totalPrice
-        });
+        // 【关键】验证 orderNo 是否存在
+        if (!orderNo) {
+            console.error('【错误】订单号缺失！无法继续支付');
+            console.error('SessionStorage 中的 orderNo:', sessionStorage.getItem('orderNo'));
+            console.error('URL 参数中的 orderNo:', new URLSearchParams(window.location.search).get('orderNo'));
+            throw new Error('订单号缺失，请重新下单');
+        }
 
-        // 创建订单并直接支付
-        const orderResult = await createOrder(sessionId, eventId, seatIds, seatDetails, totalPrice);
-        console.log('订单创建并支付成功:', orderResult);
+        console.log('【发送支付请求】');
+        console.log('  orderNo:', orderNo);
+        console.log('  sessionId:', sessionId);
+        console.log('  eventId:', eventId);
+        console.log('  seatIds:', seatIds);
+        console.log('  seatDetails:', seatDetails);
+        console.log('  totalAmount:', totalPrice);
 
-        const orderNo = orderResult.orderNo;
+        // 使用 orderNo 支付已有订单（新逻辑）
+        const orderResult = await payExistingOrder(orderNo, sessionId, eventId, seatIds, seatDetails, totalPrice);
+        console.log('【支付响应】支付结果:', orderResult);
 
         // 清除存储的订单信息
         sessionStorage.removeItem('selectedSeats');
@@ -327,12 +396,14 @@ async function processPayment() {
         sessionStorage.removeItem('totalPrice');
         sessionStorage.removeItem('lockId');
         sessionStorage.removeItem('lockExpireTime');
+        sessionStorage.removeItem('orderNo');
 
         // 跳转到结果页面
         window.location.href = `reservation-result.html?status=success&orderNo=${orderNo}`;
 
     } catch (error) {
-        console.error('支付失败:', error);
+        console.error('【支付失败】', error);
+        console.error('【支付失败】错误堆栈:', error.stack);
         showToast('支付失败: ' + error.message, 'error');
         if (payBtn) {
             payBtn.disabled = false;

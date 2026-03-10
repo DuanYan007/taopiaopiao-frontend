@@ -1011,17 +1011,34 @@ async function handleSubmit() {
         const user = getCurrentUser();
         const userId = user?.id || 1; // 默认测试用户ID为1
 
-        // 调用锁座接口
-        console.log('调用锁座接口:', { sessionId: currentSessionId, userId, seatIds });
+        // 调用锁座接口（新逻辑：锁座成功后会自动创建待支付订单）
+        console.log('=== 调用锁座接口 ===');
+        console.log('请求参数:', { sessionId: currentSessionId, userId, seatIds });
         const lockResult = await lockSeats(currentSessionId, userId, seatIds, 900);
 
-        console.log('锁座结果:', lockResult);
+        console.log('=== 锁座结果 ===');
+        console.log('完整响应:', lockResult);
+        console.log('响应类型:', typeof lockResult);
+        console.log('是否有 orderNo:', 'orderNo' in lockResult);
+        console.log('orderNo 值:', lockResult?.orderNo);
 
-        // clientPost 已解包，lockResult 就是 { success, code, message, lockId, lockedSeats, expireTime }
+        // clientPost 已解包，lockResult 就是 { success, code, message, lockId, lockedSeats, orderNo }
         if (lockResult.success === true || lockResult.code === 0) {
-            // 锁座成功
+            // 锁座成功，同时创建了待支付订单
             lockId = lockResult.lockId;
             lockExpireTime = lockResult.expireTime;
+            const orderNo = lockResult.orderNo; // 【新增】订单号
+
+            console.log('=== 解析订单信息 ===');
+            console.log('lockId:', lockId);
+            console.log('orderNo:', orderNo);
+
+            if (!orderNo) {
+                console.error('【错误】后端未返回 orderNo！');
+                console.error('lockResult 原始数据:', JSON.stringify(lockResult));
+                showToast('订单创建失败，请重试', 'error');
+                return;
+            }
 
             // 启动倒计时
             startLockCountdown(900);
@@ -1033,13 +1050,19 @@ async function handleSubmit() {
             sessionStorage.setItem('sessionData', JSON.stringify(currentSessionData));
             sessionStorage.setItem('lockId', lockId);
             sessionStorage.setItem('lockExpireTime', lockExpireTime);
+            sessionStorage.setItem('orderNo', orderNo); // 【新增】存储订单号
 
             // 计算总价
             const totalPrice = seatsData.reduce((sum, seat) => sum + (seat.price || 0), 0);
             sessionStorage.setItem('totalPrice', totalPrice);
 
-            // 跳转到订单确认页面
-            window.location.href = `order-confirm.html?sessionId=${currentSessionId}&lockId=${lockId}`;
+            // 【关键】跳转到支付页面，使用 orderNo 参数
+            const targetUrl = `order-confirm.html?orderNo=${orderNo}`;
+            console.log('=== 准备跳转到支付页面 ===');
+            console.log('  目标 URL:', targetUrl);
+            console.log('  orderNo:', orderNo);
+
+            window.location.href = targetUrl;
         } else {
             // 锁座失败
             const errorMsg = lockResult.message || '锁座失败，请选择其他座位';
@@ -1054,7 +1077,7 @@ async function handleSubmit() {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = '立即占用';
+            submitBtn.textContent = '创建订单并锁定座位';
         }
     }
 }

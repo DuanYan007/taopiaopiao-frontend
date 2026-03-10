@@ -132,63 +132,96 @@ function initImageUpload() {
 }
 
 /**
- * 上传图片
+ * 上传图片 - 直接使用 XHR + FormData
  */
 async function uploadImage(file) {
     if (coverImageUploading) return;
 
     coverImageUploading = true;
+
+    console.log('[uploadImage] 开始上传:', file.name, file.size, 'bytes');
+
+    // 获取 token
+    const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
+    console.log('[uploadImage] Token:', token ? '存在' : '不存在');
+
+    // 创建 FormData
     const formData = new FormData();
     formData.append('file', file);
+    console.log('[uploadImage] FormData 已创建');
 
-    console.log('开始上传图片...');
+    // 使用 XHR 直接上传
+    const xhr = new XMLHttpRequest();
 
-    try {
-        const response = await fetch('/api/admin/files/upload', {
-            method: 'POST',
-            body: formData
-        });
+    xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+            console.log('[uploadImage] 上传进度:', (e.loaded / e.total * 100).toFixed(1) + '%');
+        }
+    };
 
-        console.log('响应状态:', response.status, response.statusText);
-        console.log('响应头:', response.headers);
+    xhr.onload = () => {
+        console.log('[uploadImage] 响应状态:', xhr.status);
+        console.log('[uploadImage] 响应内容:', xhr.responseText);
 
-        // 检查HTTP状态
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (xhr.status === 401) {
+            alert('登录已过期');
+            window.location.href = 'admin-login.html';
+            coverImageUploading = false;
+            return;
         }
 
-        // 检查响应内容类型
-        const contentType = response.headers.get('content-type');
-        console.log('Content-Type:', contentType);
-
-        if (!contentType || !contentType.includes('application/json')) {
-            // 返回的不是JSON，可能是HTML错误页面
-            const text = await response.text();
-            console.error('服务器返回非JSON内容:', text.substring(0, 200));
-            throw new Error('后端服务未响应或返回格式错误，请确认文件上传服务已启动');
+        try {
+            const result = JSON.parse(xhr.responseText);
+            if (result.code === 200 && result.data && result.data.url) {
+                document.getElementById('coverImageInput').value = result.data.url;
+                console.log('[uploadImage] 上传成功:', result.data.url);
+                document.getElementById('removeCoverBtn').style.display = 'inline-block';
+            } else {
+                throw new Error(result.msg || '上传失败');
+            }
+        } catch (e) {
+            console.error('[uploadImage] 解析响应失败:', e);
+            alert('图片上传失败: ' + (e.message || xhr.responseText));
+            document.getElementById('coverImageImg').style.display = 'none';
+            document.getElementById('coverPlaceholder').style.display = 'block';
+        } finally {
+            coverImageUploading = false;
         }
+    };
 
-        const result = await response.json();
-        console.log('解析后的JSON:', result);
-
-        if (result.code === 200 && result.data && result.data.url) {
-            // 保存URL到隐藏字段
-            document.getElementById('coverImageInput').value = result.data.url;
-            console.log('图片上传成功:', result.data.url);
-            // 显示删除按钮
-            document.getElementById('removeCoverBtn').style.display = 'inline-block';
-        } else {
-            throw new Error(result.message || result.msg || '上传失败');
-        }
-    } catch (error) {
-        console.error('图片上传失败:', error);
-        alert('图片上传失败: ' + error.message + '\n\n提示: 请确保后端文件上传服务已启动');
-        // 重置预览
+    xhr.onerror = () => {
+        console.error('[uploadImage] 网络错误');
+        alert('图片上传失败: 网络错误');
         document.getElementById('coverImageImg').style.display = 'none';
         document.getElementById('coverPlaceholder').style.display = 'block';
-    } finally {
         coverImageUploading = false;
+    };
+
+    xhr.ontimeout = () => {
+        console.error('[uploadImage] 请求超时');
+        alert('图片上传失败: 请求超时');
+        document.getElementById('coverImageImg').style.display = 'none';
+        document.getElementById('coverPlaceholder').style.display = 'block';
+        coverImageUploading = false;
+    };
+
+    // 配置请求
+    xhr.open('POST', '/api/admin/files/upload', true); // async = true
+    xhr.timeout = 60000; // 60秒
+    if (token) {
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
     }
+    // 不设置 Content-Type，让浏览器自动处理
+
+    console.log('[uploadImage] 即将发送 FormData，包含文件:', file.name);
+    console.log('[uploadImage] FormData 内容检查:');
+    for (let pair of formData.entries()) {
+        console.log('  ', pair[0], '=', pair[1]);
+    }
+
+    // 发送
+    xhr.send(formData);
+    console.log('[uploadImage] xhr.send() 已调用');
 }
 
 /**

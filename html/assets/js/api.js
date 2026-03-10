@@ -113,3 +113,16 @@ function put(url, data = {}) {
 function del(url) {
     return request(url, { method: 'DELETE' });
 }
+
+/**
+ * 文件上传请求 - 支持 Base64 JSON 上传
+ * @param {string} url - 请求路径
+ * @param {object} data - 包含 fileName, fileType, base64Data 的对象
+ * @returns {Promise<any>} 响应数据
+ */
+async function upload(url, data) {
+    return request(url, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+}

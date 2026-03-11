@@ -6,6 +6,35 @@
     <title>我的收藏 - 淘票票</title>
     <link rel="stylesheet" href="/assets/css/client-common.css">
     <link rel="stylesheet" href="/assets/css/client.css">
+    <style>
+        /* 收藏页专用样式 */
+        .fav-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .fav-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .fav-btn.active {
+            color: #ef5350;
+        }
+    </style>
 </head>
 <body>
     <!-- 顶部导航栏 -->
@@ -26,9 +55,8 @@
 
             <div class="header-actions">
                 <a href="ai-qa.html" class="btn btn-outline btn-small">AI助手</a>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; display: flex; align-items: center; justify-content: center;">张</div>
-                    <span>张三</span>
+                <div class="user-info" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- 动态填充用户信息 -->
                 </div>
             </div>
         </div>
@@ -39,129 +67,30 @@
         <div class="container">
             <h1 class="page-title">我的收藏</h1>
 
-            <!-- 收藏列表 -->
-            <div class="event-grid">
-                <!-- 收藏项 1 -->
-                <div class="event-card">
-                    <div class="event-cover" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative;">
-                        <button style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 18px;">❤️</button>
-                    </div>
-                    <div class="event-info">
-                        <div class="event-title">周杰伦2025嘉年华世界巡回演唱会-上海站</div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📅</span>2025.03.15 - 03.16
-                        </div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📍</span>上海体育场
-                        </div>
-                        <div class="event-price">
-                            ¥380 - ¥2580
-                            <span class="event-status">
-                                <span class="badge badge-success">热卖中</span>
-                            </span>
-                        </div>
-                    </div>
+            <!-- 收藏列表容器 -->
+            <div class="event-grid" id="favoritesGrid">
+                <!-- 加载状态 -->
+                <div class="loading-state" id="loadingState" style="grid-column: 1 / -1; display: flex;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">加载中...</div>
                 </div>
 
-                <!-- 收藏项 2 -->
-                <div class="event-card">
-                    <div class="event-cover" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); position: relative;">
-                        <button style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 18px;">❤️</button>
-                    </div>
-                    <div class="event-info">
-                        <div class="event-title">林俊杰JJ20世界巡回演唱会-上海站</div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📅</span>2025.04.12 - 04.13
-                        </div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📍</span>梅赛德斯-奔驰文化中心
-                        </div>
-                        <div class="event-price">
-                            ¥480 - ¥1880
-                            <span class="event-status">
-                                <span class="badge badge-warning">即将开售</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 收藏项 3 -->
-                <div class="event-card">
-                    <div class="event-cover" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); position: relative;">
-                        <button style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 18px;">❤️</button>
-                    </div>
-                    <div class="event-info">
-                        <div class="event-title">经典音乐剧《剧院魅影》中文版</div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📅</span>2025.03.01 - 05.31
-                        </div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📍</span>上海文化广场
-                        </div>
-                        <div class="event-price">
-                            ¥180 - ¥1280
-                            <span class="event-status">
-                                <span class="badge badge-success">热卖中</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 收藏项 4 -->
-                <div class="event-card">
-                    <div class="event-cover" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); position: relative;">
-                        <button style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 18px;">❤️</button>
-                    </div>
-                    <div class="event-info">
-                        <div class="event-title">沉浸式艺术展《梵高星空》</div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📅</span>2025.02.14 - 06.30
-                        </div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📍</span>上海展览中心
-                        </div>
-                        <div class="event-price">
-                            ¥98 - ¥268
-                            <span class="event-status">
-                                <span class="badge badge-success">热卖中</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 收藏项 5 -->
-                <div class="event-card">
-                    <div class="event-cover" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); position: relative;">
-                        <button style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 18px;">❤️</button>
-                    </div>
-                    <div class="event-info">
-                        <div class="event-title">2025上海草莓音乐节</div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📅</span>2025.05.01 - 05.03
-                        </div>
-                        <div class="event-meta">
-                            <span class="event-meta-icon">📍</span>上海东方绿舟
-                        </div>
-                        <div class="event-price">
-                            ¥360 - ¥1280
-                            <span class="event-status">
-                                <span class="badge badge-warning">即将开售</span>
-                            </span>
-                        </div>
-                    </div>
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="grid-column: 1 / -1; display: none;">
+                    <div class="empty-state-icon">💝</div>
+                    <div class="empty-state-text">还没有收藏任何演出</div>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">去逛逛</a>
                 </div>
             </div>
-
-            <!-- 空状态提示（当没有收藏时显示）-->
-            <!--
-            <div class="empty-state">
-                <div class="empty-state-icon">💝</div>
-                <p>还没有收藏任何演出</p>
-                <a href="index.html" class="btn btn-primary" style="margin-top: 16px;">去逛逛</a>
-            </div>
-            -->
         </div>
     </main>
+
+    <!-- JavaScript -->
+    <script src="/assets/js/client-api.js"></script>
+    <script src="/assets/js/client-constants.js"></script>
+    <script src="/assets/js/client-auth.js"></script>
+    <script src="/assets/js/client-events.js"></script>
+    <script src="/assets/js/client-favorites.js"></script>
 
     <!-- 页脚 -->
     <footer class="footer">

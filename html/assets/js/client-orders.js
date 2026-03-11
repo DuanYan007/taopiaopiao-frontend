@@ -8,36 +8,30 @@
 const ORDERS_BASE_URL = '/api/client/orders';
 
 /**
- * 支付已有订单（新逻辑）
+ * 支付订单（新逻辑）
  * 选座成功后已创建待支付订单，此接口用于支付该订单
  * @param {string} orderNo - 订单号（必填，来自选座接口返回）
- * @param {number} sessionId - 场次ID
- * @param {number} eventId - 演出ID
- * @param {array} seatIds - 座位ID列表
- * @param {array} seatDetails - 座位详细信息
- * @param {number} totalAmount - 订单总金额
- * @returns {Promise<object>} 订单数据
+ * @returns {Promise<object>} 订单详情
  */
-async function payExistingOrder(orderNo, sessionId, eventId, seatIds, seatDetails, totalAmount) {
-    const requestData = {
-        orderNo: orderNo,
-        sessionId: sessionId,
-        eventId: eventId,
-        seatIds: seatIds,
-        seatDetails: seatDetails,
-        totalAmount: totalAmount
-    };
-
-    console.log('=== payExistingOrder 函数 ===');
+async function payOrder(orderNo) {
+    console.log('=== payOrder ===');
     console.log('请求URL:', ORDERS_BASE_URL);
-    console.log('请求数据:', JSON.stringify(requestData, null, 2));
-    console.log('orderNo 值:', orderNo);
+    console.log('请求数据:', { orderNo: orderNo });
 
-    const response = await clientPost(ORDERS_BASE_URL, requestData);
+    const response = await clientPost(ORDERS_BASE_URL, {
+        orderNo: orderNo
+    });
 
     console.log('支付响应:', response);
-
     return response;
+}
+
+/**
+ * 支付已有订单（旧函数名，保持兼容）
+ * @deprecated 请使用 payOrder 代替
+ */
+async function payExistingOrder(orderNo) {
+    return payOrder(orderNo);
 }
 
 /**
@@ -61,26 +55,21 @@ async function createOrder(sessionId, eventId, seatIds, seatDetails, totalAmount
 }
 
 /**
- * 支付订单（旧接口，保留兼容）
- * @deprecated 请使用 payExistingOrder 代替
- * @param {string} orderNo - 订单号
- * @param {string} paymentMethod - 支付方式 (wechat, alipay, balance)
- * @returns {Promise<object>} 支付结果 { orderNo, payStatus, payTime }
- */
-async function payOrder(orderNo, paymentMethod = 'wechat') {
-    return clientPost(`${ORDERS_BASE_URL}/pay`, {
-        orderNo: orderNo,
-        paymentMethod: paymentMethod
-    });
-}
-
-/**
  * 取消订单
  * @param {string} orderNo - 订单号
  * @returns {Promise<boolean>} 是否成功
  */
 async function cancelOrder(orderNo) {
     return clientPost(`${ORDERS_BASE_URL}/${orderNo}/cancel`, {});
+}
+
+/**
+ * 删除订单
+ * @param {string} orderNo - 订单号
+ * @returns {Promise<boolean>} 是否成功
+ */
+async function deleteOrder(orderNo) {
+    return clientPost(`${ORDERS_BASE_URL}/${orderNo}/delete`, {});
 }
 
 /**

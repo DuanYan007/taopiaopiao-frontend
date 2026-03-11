@@ -334,58 +334,30 @@ async function handlePayment() {
 
 /**
  * 处理支付流程
- * 新逻辑：使用 orderNo 支付已有订单
+ * 新逻辑：只传递 orderNo
  */
 async function processPayment() {
     const payBtn = document.getElementById('payBtn');
     if (payBtn) {
         payBtn.disabled = true;
-        payBtn.textContent = '处理中...';
+        payBtn.textContent = '支付中...';
     }
 
     try {
         console.log('=== 支付流程开始 ===');
-        console.log('当前 orderNo:', orderNo);
-        console.log('当前 sessionId:', sessionId);
-        console.log('当前 eventId:', eventId);
-        console.log('当前 selectedSeats:', selectedSeats);
-        console.log('当前 totalPrice:', totalPrice);
+        console.log('订单号:', orderNo);
 
-        // 收集座位ID
-        const seatIds = selectedSeats.map(s => s.seatId).filter(id => id);
-
-        // 构建座位详细信息
-        const seatDetails = selectedSeats.map(s => ({
-            seatId: s.seatId,
-            areaCode: s.areaCode,
-            areaName: s.areaName,
-            rowNum: s.rowNum,
-            seatNum: s.seatNum,
-            price: s.price || 0
-        }));
-
-        if (seatIds.length === 0 || seatDetails.length === 0) {
-            throw new Error('座位信息不完整，请重新选择');
-        }
-
-        // 【关键】验证 orderNo 是否存在
+        // 验证订单号
         if (!orderNo) {
-            console.error('【错误】订单号缺失！无法继续支付');
-            console.error('SessionStorage 中的 orderNo:', sessionStorage.getItem('orderNo'));
-            console.error('URL 参数中的 orderNo:', new URLSearchParams(window.location.search).get('orderNo'));
+            console.error('【错误】订单号缺失！');
             throw new Error('订单号缺失，请重新下单');
         }
 
         console.log('【发送支付请求】');
         console.log('  orderNo:', orderNo);
-        console.log('  sessionId:', sessionId);
-        console.log('  eventId:', eventId);
-        console.log('  seatIds:', seatIds);
-        console.log('  seatDetails:', seatDetails);
-        console.log('  totalAmount:', totalPrice);
 
-        // 使用 orderNo 支付已有订单（新逻辑）
-        const orderResult = await payExistingOrder(orderNo, sessionId, eventId, seatIds, seatDetails, totalPrice);
+        // 使用 orderNo 支付订单（新逻辑）
+        const orderResult = await payOrder(orderNo);
         console.log('【支付响应】支付结果:', orderResult);
 
         // 清除存储的订单信息
@@ -407,7 +379,7 @@ async function processPayment() {
         showToast('支付失败: ' + error.message, 'error');
         if (payBtn) {
             payBtn.disabled = false;
-            payBtn.textContent = `确认支付 ¥${totalPrice.toFixed(2)}`;
+            payBtn.textContent = `确认支付`;
         }
     }
 }

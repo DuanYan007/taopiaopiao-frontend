@@ -180,76 +180,515 @@ function renderSuccessStatus(order, event, session) {
     const seatCount = order.seatCount || 0;
     const totalAmount = order.totalAmount || 0;
 
+    // 生成模拟二维码
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${order.orderNo || orderNo}`;
+
     const containerHTML = `
-        <div style="max-width: 600px; margin: 0 auto; padding: 60px 0;">
+        <style>
+            /* 支付结果页专用样式 */
+            .result-page {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
 
-            <!-- 成功图标 -->
-            <div class="card text-center" style="padding: 60px 40px;">
-                <div style="font-size: 80px; margin-bottom: 24px;">✅</div>
-                <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 16px;">${statusDesc}</h1>
+            /* 成功状态头部 */
+            .result-header {
+                text-align: center;
+                padding: 40px 20px;
+                background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+                border-radius: 16px;
+                color: white;
+                margin-bottom: 32px;
+                position: relative;
+                overflow: hidden;
+            }
 
-                <div class="text-muted" style="margin-bottom: 32px;">
-                    恭喜您，购票成功！
+            .result-header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                animation: rotate 20s linear infinite;
+            }
+
+            @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            .result-icon {
+                width: 80px;
+                height: 80px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .result-icon svg {
+                width: 48px;
+                height: 48px;
+            }
+
+            .result-title {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 8px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .result-subtitle {
+                font-size: 16px;
+                opacity: 0.9;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* 电子票样式 */
+            .ticket-card {
+                display: flex;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+                margin-bottom: 24px;
+            }
+
+            .ticket-left {
+                flex: 1;
+                padding: 32px;
+                border-right: 2px dashed #ddd;
+                position: relative;
+            }
+
+            .ticket-left::after {
+                content: '';
+                position: absolute;
+                right: -10px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 20px;
+                height: 20px;
+                background: #f5f5f5;
+                border-radius: 50%;
+            }
+
+            .ticket-left::before {
+                content: '';
+                position: absolute;
+                right: -10px;
+                top: -20px;
+                width: 20px;
+                height: 20px;
+                background: #f5f5f5;
+                border-radius: 50%;
+            }
+
+            .ticket-right {
+                width: 280px;
+                padding: 32px 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+                position: relative;
+            }
+
+            .ticket-right::after {
+                content: '';
+                position: absolute;
+                left: -10px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 20px;
+                height: 20px;
+                background: #f5f5f5;
+                border-radius: 50%;
+            }
+
+            .ticket-right::before {
+                content: '';
+                position: absolute;
+                left: -10px;
+                top: -20px;
+                width: 20px;
+                height: 20px;
+                background: #f5f5f5;
+                border-radius: 50%;
+            }
+
+            .ticket-event-name {
+                font-size: 22px;
+                font-weight: 700;
+                color: #333;
+                margin-bottom: 20px;
+                line-height: 1.4;
+            }
+
+            .ticket-info-row {
+                display: flex;
+                margin-bottom: 16px;
+                align-items: flex-start;
+            }
+
+            .ticket-info-icon {
+                width: 20px;
+                height: 20px;
+                margin-right: 12px;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+
+            .ticket-info-icon svg {
+                width: 100%;
+                height: 100%;
+            }
+
+            .ticket-info-content {
+                flex: 1;
+            }
+
+            .ticket-info-label {
+                font-size: 12px;
+                color: #999;
+                margin-bottom: 4px;
+            }
+
+            .ticket-info-value {
+                font-size: 15px;
+                color: #333;
+                font-weight: 500;
+            }
+
+            .ticket-qr {
+                width: 160px;
+                height: 160px;
+                background: white;
+                border-radius: 12px;
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .ticket-qr img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            .ticket-qr-hint {
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+            }
+
+            .ticket-price {
+                margin-top: 24px;
+                text-align: center;
+            }
+
+            .ticket-price-label {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 4px;
+            }
+
+            .ticket-price-value {
+                font-size: 36px;
+                font-weight: 700;
+                color: #d32f2f;
+            }
+
+            /* 提示卡片 */
+            .tips-card {
+                background: #e8f5e9;
+                border-radius: 12px;
+                padding: 20px 24px;
+                margin-bottom: 24px;
+            }
+
+            .tips-card-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #2e7d32;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .tips-card-content {
+                font-size: 14px;
+                color: #2e7d32;
+                line-height: 1.8;
+            }
+
+            .tips-card-content p {
+                margin-bottom: 8px;
+                display: flex;
+                align-items: flex-start;
+            }
+
+            .tips-card-content p::before {
+                content: '•';
+                margin-right: 8px;
+                font-weight: bold;
+            }
+
+            /* 操作按钮 */
+            .action-buttons {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .action-buttons a {
+                flex: 1;
+                padding: 14px 24px;
+                border-radius: 8px;
+                text-align: center;
+                font-size: 16px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+
+            .action-btn-primary {
+                background: #1976d2;
+                color: white;
+            }
+
+            .action-btn-primary:hover {
+                background: #1565c0;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+            }
+
+            .action-btn-secondary {
+                background: #f5f5f5;
+                color: #333;
+                border: 1px solid #ddd;
+            }
+
+            .action-btn-secondary:hover {
+                background: #eeeeee;
+            }
+
+            /* 订单号显示 */
+            .order-no-display {
+                text-align: center;
+                padding: 16px;
+                background: #f9f9f9;
+                border-radius: 8px;
+                margin-bottom: 24px;
+            }
+
+            .order-no-label {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 4px;
+            }
+
+            .order-no-value {
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+                font-family: 'Courier New', monospace;
+            }
+
+            /* 快捷链接 */
+            .quick-links {
+                display: flex;
+                justify-content: center;
+                gap: 32px;
+                padding-top: 16px;
+                border-top: 1px solid #eee;
+            }
+
+            .quick-links a {
+                color: #1976d2;
+                text-decoration: none;
+                font-size: 14px;
+                transition: color 0.3s;
+            }
+
+            .quick-links a:hover {
+                color: #1565c0;
+                text-decoration: underline;
+            }
+
+            /* 响应式 */
+            @media (max-width: 768px) {
+                .ticket-card {
+                    flex-direction: column;
+                }
+
+                .ticket-left {
+                    border-right: none;
+                    border-bottom: 2px dashed #ddd;
+                }
+
+                .ticket-left::after,
+                .ticket-left::before {
+                    display: none;
+                }
+
+                .ticket-right::before {
+                    top: auto;
+                    bottom: -10px;
+                }
+
+                .ticket-right {
+                    width: 100%;
+                }
+
+                .action-buttons {
+                    flex-direction: column;
+                }
+
+                .quick-links {
+                    flex-direction: column;
+                    gap: 12px;
+                }
+            }
+        </style>
+
+        <div class="result-page">
+            <!-- 成功状态头部 -->
+            <div class="result-header">
+                <div class="result-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
                 </div>
+                <div class="result-title">${statusDesc}</div>
+                <div class="result-subtitle">恭喜您，购票成功！电子票已生成</div>
+            </div>
 
-                <!-- 订单信息 -->
-                <div class="text-left" style="background: #f9f9f9; padding: 24px; border-radius: 8px; margin-bottom: 32px;">
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">订单号</span>
-                        <span style="font-weight: 600;">${order.orderNo || orderNo}</span>
+            <!-- 订单号 -->
+            <div class="order-no-display">
+                <div class="order-no-label">订单号</div>
+                <div class="order-no-value">${order.orderNo || orderNo}</div>
+            </div>
+
+            <!-- 电子票 -->
+            <div class="ticket-card">
+                <div class="ticket-left">
+                    <div class="ticket-event-name">${eventName}</div>
+
+                    <div class="ticket-info-row">
+                        <div class="ticket-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="ticket-info-content">
+                            <div class="ticket-info-label">演出时间</div>
+                            <div class="ticket-info-value">${formattedTime}</div>
+                        </div>
                     </div>
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">演出名称</span>
-                        <span>${eventName}</span>
+
+                    <div class="ticket-info-row">
+                        <div class="ticket-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="ticket-info-content">
+                            <div class="ticket-info-label">演出场馆</div>
+                            <div class="ticket-info-value">${venueName}</div>
+                        </div>
                     </div>
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">场次时间</span>
-                        <span>${formattedTime}</span>
-                    </div>
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">场馆</span>
-                        <span>${venueName}</span>
-                    </div>
+
                     ${seatInfo ? `
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">座位信息</span>
-                        <span>${seatInfo}</span>
-                    </div>` : ''}
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">票数</span>
-                        <span>${seatCount}张</span>
+                    <div class="ticket-info-row">
+                        <div class="ticket-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="ticket-info-content">
+                            <div class="ticket-info-label">座位信息</div>
+                            <div class="ticket-info-value">${seatInfo}</div>
+                        </div>
                     </div>
-                    <div class="flex-between mb-8">
-                        <span class="text-muted">单价</span>
-                        <span>¥${unitPrice}</span>
-                    </div>
-                    <div class="divider" style="margin: 16px 0;"></div>
-                    <div class="flex-between">
-                        <span style="font-weight: 600;">实付金额</span>
-                        <div class="price price-large" style="font-size: 28px;">¥${totalAmount}</div>
+                    ` : ''}
+
+                    <div class="ticket-info-row">
+                        <div class="ticket-info-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="ticket-info-content">
+                            <div class="ticket-info-label">票数 / 单价</div>
+                            <div class="ticket-info-value">${seatCount}张 × ¥${unitPrice}</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 购票提示 -->
-                <div class="text-left" style="background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-                    <div style="margin-bottom: 12px;"><strong>购票提示：</strong></div>
-                    <div style="color: #2e7d32; line-height: 1.8;">
-                        <p style="margin-bottom: 8px;">• 电子票已发送至您的账户，可前往"我的订单"查看</p>
-                        <p style="margin-bottom: 8px;">• 演出当天凭电子票二维码扫码入场</p>
-                        <p>• 如需退票，请在演出前24小时在线申请</p>
+                <div class="ticket-right">
+                    <div class="ticket-qr">
+                        <img src="${qrCodeUrl}" alt="入场二维码" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; background:#f5f5f5; border-radius:8px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1" style="width:60px; height:60px;">
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                <rect x="7" y="7" width="10" height="10"></rect>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ticket-qr-hint">演出当天扫码入场</div>
+                    <div class="ticket-price">
+                        <div class="ticket-price-label">实付金额</div>
+                        <div class="ticket-price-value">¥${totalAmount}</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 操作按钮 -->
-                <div class="flex" style="gap: 16px;">
-                    <a href="order-detail.html?orderNo=${order.orderNo || orderNo}" class="btn btn-primary" style="flex: 1;">查看订单</a>
-                    <a href="index.html" class="btn btn-secondary" style="flex: 1;">返回首页</a>
+            <!-- 购票提示 -->
+            <div class="tips-card">
+                <div class="tips-card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    购票提示
                 </div>
+                <div class="tips-card-content">
+                    <p>电子票已发送至您的账户，可前往"我的订单"查看</p>
+                    <p>演出当天凭电子票二维码扫码入场</p>
+                    <p>建议提前30分钟到达场馆，有序检票入场</p>
+                    <p>如需退票，请在演出前24小时在线申请</p>
+                </div>
+            </div>
 
-                <div style="margin-top: 24px; display: flex; gap: 24px; justify-content: center;">
-                    <a href="order-center.html" style="color: #1976d2;">查看我的订单</a>
-                    <a href="event-detail.html?id=${order.eventId || ''}" style="color: #1976d2;">查看演出详情</a>
-                </div>
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <a href="order-detail.html?orderNo=${order.orderNo || orderNo}" class="action-btn-primary">查看订单详情</a>
+                <a href="index.html" class="action-btn-secondary">返回首页</a>
+            </div>
+
+            <!-- 快捷链接 -->
+            <div class="quick-links">
+                <a href="order-center.html">查看我的订单 →</a>
+                <a href="event-detail.html?id=${order.eventId || ''}">查看演出详情 →</a>
             </div>
         </div>
     `;
@@ -265,17 +704,106 @@ function showFailStatus(message) {
     if (!container) return;
 
     container.innerHTML = `
-        <div class="card text-center" style="padding: 60px 40px;">
-            <div style="font-size: 80px; margin-bottom: 24px;">❌</div>
-            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 16px;">操作失败</h1>
+        <style>
+            .result-page-error {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 60px 20px;
+            }
 
-            <div class="text-muted" style="margin-bottom: 32px;">
-                ${message}
+            .error-header {
+                text-align: center;
+                padding: 40px 20px;
+                background: linear-gradient(135deg, #ef5350 0%, #c62828 100%);
+                border-radius: 16px;
+                color: white;
+                margin-bottom: 32px;
+            }
+
+            .error-icon {
+                width: 80px;
+                height: 80px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 20px;
+            }
+
+            .error-icon svg {
+                width: 48px;
+                height: 48px;
+            }
+
+            .error-title {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 8px;
+            }
+
+            .error-subtitle {
+                font-size: 16px;
+                opacity: 0.9;
+            }
+
+            .error-actions {
+                display: flex;
+                gap: 16px;
+            }
+
+            .error-actions a {
+                flex: 1;
+                padding: 14px 24px;
+                border-radius: 8px;
+                text-align: center;
+                font-size: 16px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+
+            .error-btn-primary {
+                background: #1976d2;
+                color: white;
+            }
+
+            .error-btn-primary:hover {
+                background: #1565c0;
+            }
+
+            .error-btn-secondary {
+                background: #f5f5f5;
+                color: #333;
+                border: 1px solid #ddd;
+            }
+
+            .error-btn-secondary:hover {
+                background: #eeeeee;
+            }
+
+            @media (max-width: 768px) {
+                .error-actions {
+                    flex-direction: column;
+                }
+            }
+        </style>
+
+        <div class="result-page-error">
+            <div class="error-header">
+                <div class="error-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </div>
+                <div class="error-title">操作失败</div>
+                <div class="error-subtitle">${message}</div>
             </div>
 
-            <div class="flex" style="gap: 16px;">
-                <a href="index.html" class="btn btn-primary" style="flex: 1;">返回首页</a>
-                <a href="order-center.html" class="btn btn-secondary" style="flex: 1;">我的订单</a>
+            <div class="error-actions">
+                <a href="index.html" class="error-btn-primary">返回首页</a>
+                <a href="order-center.html" class="error-btn-secondary">我的订单</a>
             </div>
         </div>
     `;
